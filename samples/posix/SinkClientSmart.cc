@@ -215,17 +215,13 @@ int main(int argc, char** argv, char** envArg) {
         return 1;
     }
 
+    WavDataSource dataSourceAnti;
     if (argc >= 3)
     {
-       WavDataSource dataSourceAnti;
         if (!dataSourceAnti.Open(argv[2])) {
             fprintf(stderr, "Failed to set data source (%s)\n", argv[2]);
             return 1;
         }
-        // if (!g_sinkPlayer->SetDataSource(&dataSource)) {
-        //     fprintf(stderr, "Failed to set data source (%s)\n", argv[2]);
-        //     return 1;
-        // }
     }
 
     if (status == ER_OK) {
