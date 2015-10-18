@@ -670,116 +670,6 @@ bool SinkPlayer::OpenSink(const char* name) {
 /* copy start from here */
 
 
-    /* Get FifoSize */
-    MsgArg fifoSizeReply;
-    status = si->portObj->GetProperty(AUDIO_SINK_INTERFACE, "FifoSize", fifoSizeReply);
-    if (status == ER_OK) {
-        status = fifoSizeReply.Get("u", &si->fifoSize);
-        if (status != ER_OK) {
-            QCC_LogError(status, ("Bad FifoSize property"));
-            return false;
-        }
-    } else {
-        QCC_LogError(status, ("GetProperty(FifoSize) failed"));
-        return false;
-    }
-
-    int64_t diffTime = 0;
-    for (int i = 0; i < 5; i++) {
-        uint64_t time = GetCurrentTimeNanos();
-        MsgArg setTimeArgs[1];
-        setTimeArgs[0].Set("t", time);
-        Message setTimeReply(*mMsgBus);
-        status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
-        uint64_t newTime = GetCurrentTimeNanos();
-        if (ER_OK == status) {
-            QCC_DbgTrace(("Port.SetTime(%" PRIu64 ") success", time));
-        } else {
-            QCC_LogError(status, ("Port.SetTime() failed"));
-            return false;
-        }
-
-        diffTime = (newTime - time) / 2;
-        if (diffTime < 10000000) { // 10ms
-            break;
-        }
-
-        /* Sleep for 1s and try again */
-        SleepNanos(1000000000);
-    }
-
-    MsgArg adjustTimeArgs[1];
-    adjustTimeArgs[0].Set("x", diffTime);
-    Message adjustTimeReply(*mMsgBus);
-    status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
-    if (ER_OK == status) {
-        QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));
-    } else {
-        QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
-        return false;
-    }
-
-    si->fifoPositionHandler = new FifoPositionHandler();
-    status = si->fifoPositionHandler->Register(mMsgBus,
-                                               si->portObj->GetPath().c_str(), si->sessionId);
-    if (status != ER_OK) {
-        QCC_LogError(status, ("FifoPositionHandler.Register() failed"));
-        return false;
-    }
-
-    mSinksMutex->Lock();
-    SinkInfo* fsi = NULL;
-    for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
-        if (it->mState == SinkInfo::OPENED) {
-            fsi = &(*it);
-            break;
-        }
-    }
-    if (!fsi) {
-        /* Start from beginning if we're the first sink */
-        si->inputDataBytesRemaining = mDataSource->GetInputSize();
-        si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
-    } else {
-        /* Start with values from first sink, note these are in the future due to semi-full fifo */
-        fsi->timestampMutex.Lock();
-        si->timestamp = fsi->timestamp;
-        si->inputDataBytesRemaining = fsi->inputDataBytesRemaining;
-        fsi->timestampMutex.Unlock();
-
-        uint32_t inputDataBytesAvailable = mDataSource->GetInputSize() - si->inputDataBytesRemaining;
-        uint32_t bytesPerSecond = mDataSource->GetSampleRate() * mDataSource->GetBytesPerFrame();
-        uint32_t bytesDiff = ((double)(si->timestamp - GetCurrentTimeNanos()) / 1000000000) * bytesPerSecond;
-        bytesDiff = MIN(bytesDiff, inputDataBytesAvailable);
-        bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
-        uint32_t inputPacketBytes = mDataSource->GetBytesPerFrame() * si->framesPerPacket;
-        bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
-
-        /* Adjust values appropriately so that playback will start sooner on new sink */
-        si->timestamp -= (uint64_t)(((double)bytesDiff / bytesPerSecond) * 1000000000);
-        si->inputDataBytesRemaining += bytesDiff;
-    }
-    mSinksMutex->Unlock();
-
-    if (mState == PlayerState::PLAYING) {
-        EmitAudioInfo* eai = new EmitAudioInfo;
-        eai->sp = this;
-
-        mSinksMutex->Lock();
-        std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(si->serviceName));
-        eai->si = &(*it);
-        mSinksMutex->Unlock();
-
-        mEmitThreadsMutex->Lock();
-        Thread* t = new Thread("EmitAudio", &EmitAudioThread);
-        mEmitThreads[si->serviceName] = t;
-        t->Start(eai);
-        mEmitThreadsMutex->Unlock();
-    }
-
-    si->mState = SinkInfo::OPENED;
-    return true;
-}
-
 
 struct RemoveSinkInfo {
     char* name;
@@ -1109,7 +999,6 @@ bool SinkPlayer::OpenAllSinks() {
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
         OpenSink(si->serviceName);
-        printf("Sink %s has been opened!\n", si->serviceName);
     }
 
     mSinksMutex->Unlock();
@@ -1127,7 +1016,6 @@ bool SinkPlayer::CloseAllSinks() {
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
         CloseSink(si->serviceName);
-        printf("Sink %s has been closed!\n", si->serviceName);
     }
 
     mSinksMutex->Unlock();
