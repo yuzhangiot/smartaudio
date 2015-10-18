@@ -286,7 +286,7 @@ int main(int argc, char** argv, char** envArg) {
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
             } else if (sscanf(buf, "opensink %128s", name) == 1){
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
-                g_sinkPlayer->opensink(name)
+                g_sinkPlayer->opensink(name);
             } else if (strcmp(buf, "quit") == 0 || strcmp(buf, "exit") == 0) {
                 break;
             } else {
