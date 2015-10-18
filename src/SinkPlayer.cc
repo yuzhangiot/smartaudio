@@ -447,7 +447,7 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
     return NULL;
 }
 
-bool SinkPlayer::OpenSink(char* name) {
+bool SinkPlayer::OpenSink(const char* name) {
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
@@ -776,7 +776,7 @@ ThreadReturn SinkPlayer::RemoveSinkThread(void* arg) {
     return 0;
 }
 
-bool SinkPlayer::CloseSink(char* name) {
+bool SinkPlayer::CloseSink(const char* name) {
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     if (it == mSinks.end()) {

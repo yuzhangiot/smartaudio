@@ -215,7 +215,7 @@ class SinkPlayer : public ajn::MessageReceiver {
      *
      * @return true if the stream is opened.
      */
-    bool OpenSink(char* name);
+    bool OpenSink(const char* name);
 
     // bool OpenSinkAnti(const char* name, DataSource* theAntiSource);
 
@@ -235,7 +235,7 @@ class SinkPlayer : public ajn::MessageReceiver {
      *
      * @return true if the stream is closed.
      */
-    bool CloseSink(char* name);
+    bool CloseSink(const char* name);
 
     /**
      * Closes the stream to all sinks that are part of the streaming session.
