@@ -288,11 +288,12 @@ int main(int argc, char** argv, char** envArg) {
                 g_sinkPlayer->CloseOneSink();
 
             } else if (sscanf(buf, "kill %128s", name) == 1) {
-                printf("Smart audio says: Hello world!\n");
+                printf("Smart audio says: Hello orld!\n");
                 // g_sinkPlayer->RemoveSink(name);
                 g_sinkPlayer->CloseSink(name);
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
             } else if (sscanf(buf, "repick %128s", name) == 1){
+                printf("Smart audio says: Hello world!\n");
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
                 g_sinkPlayer->OpenSink(name);
             } else if (strcmp(buf, "quit") == 0 || strcmp(buf, "exit") == 0) {
