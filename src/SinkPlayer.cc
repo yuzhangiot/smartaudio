@@ -454,7 +454,7 @@ bool SinkPlayer::OpenSink(const char* name) {
     mSinksMutex->Unlock();
     if (!si) {
         QCC_LogError(ER_FAIL, ("OpenSink error: not found"));
-        printf("%s\n", name);
+        fprintf(stderr, "%s\n", name); fflush(stderr);
         return false;
     }
 
