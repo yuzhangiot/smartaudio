@@ -1219,6 +1219,7 @@ bool SinkPlayer::OpenAllSinks() {
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
         OpenSink(si->serviceName);
+        printf("Sink %s has been opened!\n", si->serviceName);
     }
 
     mSinksMutex->Unlock();
@@ -1236,6 +1237,7 @@ bool SinkPlayer::CloseAllSinks() {
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
         CloseSink(si->serviceName);
+        printf("Sink %s has been closed!\n", si->serviceName);
     }
 
     mSinksMutex->Unlock();
