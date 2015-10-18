@@ -226,8 +226,8 @@ int main(int argc, char** argv, char** envArg) {
 
     if (status == ER_OK) {
         char buf[1024];
-        // char name[128];
-        const char* name[128];
+        char name[128];
+        // const char* name[128];
         while (!g_interrupt && get_line(buf, sizeof(buf) / sizeof(buf[0]), stdin) != NULL) {
             int i;
             if (strcmp(buf, "play") == 0) {
