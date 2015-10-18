@@ -263,13 +263,14 @@ int main(int argc, char** argv, char** envArg) {
                 }
 
             } else if (sscanf(buf, "open %128s", name) == 1) {
+                g_sinkPlayer->CloseAllSinks();
                 dataSource.Close();
                 if (!dataSource.Open(name)) {
-                    fprintf(stderr, "Failed to set data source (%s)\n", name);
+                    fprintf(stderr, "Failed to set data source in first step (%s)\n", name);
                     continue;
                 }
                 if (!g_sinkPlayer->SetDataSource(&dataSource)) {
-                    fprintf(stderr, "Failed to set data source (%s)\n", name);
+                    fprintf(stderr, "Failed to set data source in second step (%s)\n", name);
                     continue;
                 }
                 g_sinkPlayer->OpenAllSinks();
@@ -284,7 +285,7 @@ int main(int argc, char** argv, char** envArg) {
                 // g_sinkPlayer->RemoveSink(name);
                 g_sinkPlayer->CloseSink(name);
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
-            } else if (sscanf(buf, "opensink %128s", name) == 1){
+            } else if (sscanf(buf, "repick %128s", name) == 1){
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
                 g_sinkPlayer->OpenSink(name);
             } else if (strcmp(buf, "quit") == 0 || strcmp(buf, "exit") == 0) {
