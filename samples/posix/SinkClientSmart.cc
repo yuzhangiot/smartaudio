@@ -280,6 +280,12 @@ int main(int argc, char** argv, char** envArg) {
             } else if (strcmp(buf, "close") == 0) {
                 g_sinkPlayer->CloseAllSinks();
 
+            } else if (strcmp(buf, "test01") == 0) {
+                g_sinkPlayer->OpenOneSink();
+
+            } else if (strcmp(buf, "test02") == 0) {
+                g_sinkPlayer->CloseOneSink();
+
             } else if (sscanf(buf, "kill %128s", name) == 1) {
                 printf("Smart audio says: Hello world!\n");
                 // g_sinkPlayer->RemoveSink(name);

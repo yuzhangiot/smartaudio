@@ -447,7 +447,7 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
     return NULL;
 }
 
-bool SinkPlayer::OpenSink(const char* name) {
+bool SinkPlayer::OpenSink(char* name) {
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
@@ -776,7 +776,7 @@ ThreadReturn SinkPlayer::RemoveSinkThread(void* arg) {
     return 0;
 }
 
-bool SinkPlayer::CloseSink(const char* name) {
+bool SinkPlayer::CloseSink(char* name) {
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     if (it == mSinks.end()) {
@@ -1005,6 +1005,24 @@ bool SinkPlayer::OpenAllSinks() {
     return true;
 }
 
+bool SinkPlayer::OpenOneSink() {
+    mSinksMutex->Lock();
+    int count = mSinks.size();
+    if (count == 0) {
+        mSinksMutex->Unlock();
+        return false;
+    }
+
+    for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
+        SinkInfo* si = &(*it);
+        OpenSink(si->serviceName);
+        break;
+    }
+
+    mSinksMutex->Unlock();
+    return true;
+}
+
 bool SinkPlayer::CloseAllSinks() {
     mSinksMutex->Lock();
     int count = mSinks.size();
@@ -1016,6 +1034,25 @@ bool SinkPlayer::CloseAllSinks() {
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
         CloseSink(si->serviceName);
+    }
+
+    mSinksMutex->Unlock();
+
+    return true;
+}
+
+bool SinkPlayer::CloseOneSink() {
+    mSinksMutex->Lock();
+    int count = mSinks.size();
+    if (count == 0) {
+        mSinksMutex->Unlock();
+        return false;
+    }
+
+    for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
+        SinkInfo* si = &(*it);
+        CloseSink(si->serviceName);
+        break;
     }
 
     mSinksMutex->Unlock();

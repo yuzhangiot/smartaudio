@@ -215,9 +215,9 @@ class SinkPlayer : public ajn::MessageReceiver {
      *
      * @return true if the stream is opened.
      */
-    bool OpenSink(const char* name);
+    bool OpenSink(char* name);
 
-    bool OpenSinkAnti(const char* name, DataSource* theAntiSource);
+    // bool OpenSinkAnti(const char* name, DataSource* theAntiSource);
 
     /**
      * Opens the stream to all sinks that are part of the streaming session.
@@ -226,6 +226,8 @@ class SinkPlayer : public ajn::MessageReceiver {
      */
     bool OpenAllSinks();
 
+    bool OpenOneSink();
+
     /**
      * Closes the stream to the sink.
      *
@@ -233,7 +235,7 @@ class SinkPlayer : public ajn::MessageReceiver {
      *
      * @return true if the stream is closed.
      */
-    bool CloseSink(const char* name);
+    bool CloseSink(char* name);
 
     /**
      * Closes the stream to all sinks that are part of the streaming session.
@@ -241,6 +243,8 @@ class SinkPlayer : public ajn::MessageReceiver {
      * @return true on success.
      */
     bool CloseAllSinks();
+
+    bool CloseOneSink();
 
     /**
      * Checks if player state is PLAYING.
