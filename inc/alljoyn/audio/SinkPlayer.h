@@ -133,6 +133,8 @@ class SinkPlayer : public ajn::MessageReceiver {
      */
     bool SetDataSource(DataSource* dataSource);
 
+    bool SetDataSourceAnti(DataSource* dataSource);
+
     /**
      * Sets the preferred format for streaming.
      *
@@ -217,7 +219,7 @@ class SinkPlayer : public ajn::MessageReceiver {
      */
     bool OpenSink(const char* name);
 
-    bool OpenSinkAnti(const char* name, DataSource* theSourceAnti);
+    bool OpenSinkAnti(const char* name);
 
     /**
      * Opens the stream to all sinks that are part of the streaming session.
@@ -330,6 +332,7 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     static void* AddSinkThread(void* arg);
     static void* EmitAudioThread(void* arg);
+    static void* EmitAudioThreadAnti(void* arg);
 
     bool RemoveSink(const char* name, bool lost);
     bool RemoveSink(ajn::SessionId sessionId, bool lost);

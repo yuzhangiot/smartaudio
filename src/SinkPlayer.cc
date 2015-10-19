@@ -207,7 +207,7 @@ class SinkSessionListener : public SessionListener {
 };
 
 SinkPlayer::SinkPlayer(BusAttachment* msgBus)
-    : MessageReceiver(), mSinkListenersMutex(new qcc::Mutex()), mDataSource(NULL),
+    : MessageReceiver(), mSinkListenersMutex(new qcc::Mutex()), mDataSource(NULL), mDataSourceAnti(NULL),
     mSinksMutex(new qcc::Mutex()), mAddThreadsMutex(new qcc::Mutex()), mRemoveThreadsMutex(new qcc::Mutex()),
     mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL) {
     mMsgBus = msgBus;
@@ -285,6 +285,24 @@ bool SinkPlayer::SetDataSource(DataSource* theSource) {
     mSinksMutex->Unlock();
 
     mDataSource = theSource;
+    mState = PlayerState::INIT;
+
+    return true;
+}
+
+bool SinkPlayer::SetDataSourceAnti(DataSource* theSource) {
+    mSinksMutex->Lock();
+    for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
+        SinkInfo* si = &(*it);
+        if (si->mState == SinkInfo::OPENED) {
+            mSinksMutex->Unlock();
+            QCC_LogError(ER_FAIL, ("Sinks must be closed before SetDataSource"));
+            return false;
+        }
+    }
+    mSinksMutex->Unlock();
+
+    mDataSourceAnti = theSource;
     mState = PlayerState::INIT;
 
     return true;
@@ -671,7 +689,7 @@ bool SinkPlayer::OpenSink(const char* name) {
 }
 
 /* copy start from here */
-bool SinkPlayer::OpenSinkAnti(const char* name, DataSource* theSourceAnti) {
+bool SinkPlayer::OpenSinkAnti(const char* name) {
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
@@ -851,7 +869,7 @@ bool SinkPlayer::OpenSinkAnti(const char* name, DataSource* theSourceAnti) {
     }
     if (!fsi) {
         /* Start from beginning if we're the first sink */
-        si->inputDataBytesRemaining = theSourceAnti->GetInputSize();
+        si->inputDataBytesRemaining = mDataSourceAnti->GetInputSize();
         si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
     } else {
         /* Start with values from first sink, note these are in the future due to semi-full fifo */
@@ -860,12 +878,12 @@ bool SinkPlayer::OpenSinkAnti(const char* name, DataSource* theSourceAnti) {
         si->inputDataBytesRemaining = fsi->inputDataBytesRemaining;
         fsi->timestampMutex.Unlock();
 
-        uint32_t inputDataBytesAvailable = theSourceAnti->GetInputSize() - si->inputDataBytesRemaining;
-        uint32_t bytesPerSecond = theSourceAnti->GetSampleRate() * theSourceAnti->GetBytesPerFrame();
+        uint32_t inputDataBytesAvailable = mDataSourceAnti->GetInputSize() - si->inputDataBytesRemaining;
+        uint32_t bytesPerSecond = mDataSourceAnti->GetSampleRate() * mDataSourceAnti->GetBytesPerFrame();
         uint32_t bytesDiff = ((double)(si->timestamp - GetCurrentTimeNanos()) / 1000000000) * bytesPerSecond;
         bytesDiff = MIN(bytesDiff, inputDataBytesAvailable);
         bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
-        uint32_t inputPacketBytes = theSourceAnti->GetBytesPerFrame() * si->framesPerPacket;
+        uint32_t inputPacketBytes = mDataSourceAnti->GetBytesPerFrame() * si->framesPerPacket;
         bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
 
         /* Adjust values appropriately so that playback will start sooner on new sink */
@@ -884,7 +902,7 @@ bool SinkPlayer::OpenSinkAnti(const char* name, DataSource* theSourceAnti) {
         mSinksMutex->Unlock();
 
         mEmitThreadsMutex->Lock();
-        Thread* t = new Thread("EmitAudio", &EmitAudioThread);
+        Thread* t = new Thread("EmitAudio", &EmitAudioThread;
         mEmitThreads[si->serviceName] = t;
         t->Start(eai);
         mEmitThreadsMutex->Unlock();
@@ -1212,6 +1230,122 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
     return 0;
 }
+
+/* copy start from here */
+ThreadReturn SinkPlayer::EmitAudioThreadAnti(void* arg) {
+    EmitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
+    Thread* selfThread = Thread::GetThread();
+    SinkPlayer* sp = eai->sp;
+    SinkInfo* si = eai->si;
+    QStatus status = ER_OK;
+
+    uint32_t inputPacketBytes = sp->mDataSourceAnti->GetBytesPerFrame() * si->framesPerPacket;
+    uint32_t bytesPerSecond = sp->mDataSourceAnti->GetSampleRate() * sp->mDataSourceAnti->GetBytesPerFrame();
+    uint8_t* readBuffer = (uint8_t*)calloc(inputPacketBytes, 1);
+    uint32_t bytesEmitted = 0;
+
+    while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
+        if (sp->mDataSourceAnti->IsDataReady()) {
+            int32_t numBytes = sp->mDataSourceAnti->ReadData(readBuffer, sp->mDataSourceAnti->GetInputSize() - si->inputDataBytesRemaining, inputPacketBytes);
+            if (numBytes == 0) {            //EOF
+                si->inputDataBytesRemaining = 0;
+                break;
+            }
+
+            uint8_t* buffer = readBuffer;
+            uint32_t numBytesToEmit = numBytes;
+            si->encoder->Encode(&buffer, &numBytesToEmit);
+
+            sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp);
+
+            si->timestampMutex.Lock();
+            si->timestamp += (uint64_t)(((double)numBytes / bytesPerSecond) * 1000000000);
+            si->inputDataBytesRemaining -= numBytes;
+            si->timestampMutex.Unlock();
+
+            bytesEmitted += numBytes;
+
+            QCC_DbgTrace(("Emitted %i bytes", numBytes));
+        } else {       //Sleep for a few milli sec to wait for data ready again
+            usleep(10 * 1000);
+        }
+    }
+
+    while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0) {
+        while (!selfThread->IsStopping()) {
+            status = si->fifoPositionHandler->WaitUntilReadyToEmit(50);
+            if (status == ER_OK) {
+                break;
+            }
+        }
+
+        if (status != ER_OK) {
+            break;
+        }
+
+        // Get FifoPosition, try up to 15 times on timeout
+        MsgArg fifoPositionReply;
+        for (int i = 0; i < 15; i++) {
+            fifoPositionReply.Clear();
+            status = si->portObj->GetProperty(AUDIO_SINK_INTERFACE, "FifoPosition", fifoPositionReply);
+            if (status != ER_TIMEOUT) {
+                break;
+            }
+            SleepNanos(2 * 1000000000); // 2s
+        }
+
+        if (status != ER_OK) {
+            QCC_LogError(status, ("GetProperty(FifoPosition) failed"));
+            break;
+        }
+
+        uint32_t fifoPosition = 0;
+        status = fifoPositionReply.Get("u", &fifoPosition);
+        if (status != ER_OK) {
+            QCC_LogError(status, ("Bad FifoPosition property"));
+            break;
+        }
+
+        bytesEmitted = 0;
+        uint32_t bytesToWrite = si->fifoSize - fifoPosition;
+
+        while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= bytesToWrite) {
+            if (sp->mDataSourceAnti->IsDataReady()) {
+                int32_t numBytes = sp->mDataSourceAnti->ReadData(readBuffer, sp->mDataSourceAnti->GetInputSize() - si->inputDataBytesRemaining, inputPacketBytes);
+                if (numBytes == 0) {                //EOF
+                    si->inputDataBytesRemaining = 0;
+                    break;
+                }
+
+                uint8_t* buffer = readBuffer;
+                uint32_t numBytesToEmit = numBytes;
+                si->encoder->Encode(&buffer, &numBytesToEmit);
+
+                uint64_t now = GetCurrentTimeNanos();
+                if (si->timestamp < now) {
+                    QCC_LogError(ER_WARNING, ("Skipping emit of audio that's outdated by %" PRIu64 " nanos", now - si->timestamp));
+                } else {
+                    sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp);
+                    QCC_DbgTrace(("%d: timestamp %" PRIu64 " numBytes %d bytesPerSecond %d", si->sessionId, si->timestamp, numBytes, bytesPerSecond));
+                    bytesEmitted += numBytes;
+                    QCC_DbgTrace(("Emitted %i bytes", numBytes));
+                }
+
+                si->timestampMutex.Lock();
+                si->timestamp += (uint64_t)(((double)numBytes / bytesPerSecond) * 1000000000);
+                si->inputDataBytesRemaining -= numBytes;
+                si->timestampMutex.Unlock();
+            } else {           //Sleep for a few milli sec to wait for data ready again
+                usleep(10 * 1000);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/* copy end here */
+
 
 bool SinkPlayer::OpenAllSinks() {
     mSinksMutex->Lock();
