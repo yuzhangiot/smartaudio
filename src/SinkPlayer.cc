@@ -453,7 +453,7 @@ bool SinkPlayer::OpenSink(const char* name) {
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
     mSinksMutex->Unlock();
 
-    printf("Smart audio says: Hello world!222 %s\n", name);
+    // printf("Smart audio says: Hello world!222 %s\n", name);
     if (!si) {
         QCC_LogError(ER_FAIL, ("OpenSink error: not found"));
         fprintf(stderr, "%s\n", name); fflush(stderr);
@@ -1018,6 +1018,7 @@ bool SinkPlayer::OpenOneSink() {
 
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
+        printf("%s\n", si->serviceName);
         OpenSink(si->serviceName);
         break;
     }
@@ -1036,6 +1037,7 @@ bool SinkPlayer::CloseAllSinks() {
 
     for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
         SinkInfo* si = &(*it);
+        printf("%s\n", si->serviceName);
         CloseSink(si->serviceName);
     }
 
