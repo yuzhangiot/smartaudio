@@ -779,7 +779,7 @@ bool SinkPlayer::OpenSinkAnti(const char* name) {
     }
 
     si->encoder = AudioEncoder::Create(capability->type.c_str());
-    si->encoder->Configure(theSourceAnti);
+    si->encoder->Configure(mDataSourceAnti);
     si->selectedCapability = new Capability;
     si->encoder->GetConfiguration(si->selectedCapability);
     si->framesPerPacket = si->encoder->GetFrameSize();
