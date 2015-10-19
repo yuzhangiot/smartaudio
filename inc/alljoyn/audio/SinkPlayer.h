@@ -217,7 +217,7 @@ class SinkPlayer : public ajn::MessageReceiver {
      */
     bool OpenSink(const char* name);
 
-    // bool OpenSinkAnti(const char* name, DataSource* theAntiSource);
+    bool OpenSinkAnti(const char* name, DataSource* theSourceAnti);
 
     /**
      * Opens the stream to all sinks that are part of the streaming session.

@@ -222,6 +222,9 @@ int main(int argc, char** argv, char** envArg) {
             fprintf(stderr, "Failed to set data source (%s)\n", argv[2]);
             return 1;
         }
+        else{
+            printf("Sucess read file :%s\n", argv[2]);
+        }
     }
 
     if (status == ER_OK) {
@@ -294,8 +297,8 @@ int main(int argc, char** argv, char** envArg) {
                 // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
             } else if (sscanf(buf, "repick %128s", name) == 1){
                 printf("Smart audio says: Hello world! %s\n", name);
-                // g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
-                g_sinkPlayer->OpenSink(name);
+                g_sinkPlayer->OpenSinkAnti(name,&dataSourceAnti);
+                // g_sinkPlayer->OpenSink(name);
             } else if (strcmp(buf, "quit") == 0 || strcmp(buf, "exit") == 0) {
                 break;
             } else {

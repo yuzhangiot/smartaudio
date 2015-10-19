@@ -671,7 +671,229 @@ bool SinkPlayer::OpenSink(const char* name) {
 }
 
 /* copy start from here */
+bool SinkPlayer::OpenSinkAnti(const char* name, DataSource* theSourceAnti) {
+    mSinksMutex->Lock();
+    std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
+    SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
+    mSinksMutex->Unlock();
 
+    // printf("Smart audio says: Hello world!222 %s\n", name);
+    if (!si) {
+        QCC_LogError(ER_FAIL, ("OpenSink error: not found"));
+        fprintf(stderr, "%s\n", name); fflush(stderr);
+        return false;
+    }
+
+    /* Open the stream */
+    Message openReply(*mMsgBus);
+    QStatus status = si->streamObj->MethodCall(STREAM_INTERFACE, "Open", NULL, 0, openReply);
+    if (status != ER_OK) {
+        QCC_LogError(status, ("Stream.Open() failed"));
+        return false;
+    }
+
+    /* Introspect */
+    status = si->streamObj->IntrospectRemoteObject();
+    if (status != ER_OK) {
+        QCC_LogError(status, ("IntrospectRemoteObject(stream) failed"));
+        return false;
+    }
+
+    size_t nChildren = si->streamObj->GetChildren(NULL);
+    if (nChildren == 0) {
+        QCC_LogError(ER_FAIL, ("Stream does not have any child objects"));
+        return false;
+    }
+
+    ProxyBusObject** children = new ProxyBusObject *[nChildren];
+    if (si->streamObj->GetChildren(children, nChildren) != nChildren) {
+        QCC_LogError(ER_FAIL, ("Stream returned bad number of children"));
+        delete[] children;
+        return false;
+    }
+
+    for (size_t i = 0; i < nChildren; i++) {
+        ProxyBusObject* child = children[i];
+
+        status = child->IntrospectRemoteObject();
+        if (status != ER_OK) {
+            QCC_LogError(status, ("IntrospectRemoteObject(child) failed"));
+            break;
+        }
+
+        if (child->ImplementsInterface(AUDIO_SINK_INTERFACE)) {
+            si->portObj = child;
+            break;
+        }
+    }
+
+    delete[] children;
+
+    if (si->portObj == NULL) {
+        QCC_LogError(ER_FAIL, ("Stream does not have child object that implements AudioSink"));
+        return false;
+    }
+
+    /* Get Capabilities */
+    MsgArg capabilitiesReply;
+    status = si->portObj->GetProperty(PORT_INTERFACE, "Capabilities", capabilitiesReply);
+    if (status == ER_OK) {
+        MSGARG_TO_CAPABILITIES(capabilitiesReply, si->capabilities, si->numCapabilities);
+        //PRINT_CAPABILITIES(si->capabilities, si->numCapabilities);
+    } else {
+        QCC_LogError(status, ("GetProperty(Capabilities) failed"));
+        return false;
+    }
+
+    Capability* capability = NULL;
+    for (size_t i = 0; i < si->numCapabilities; i++) {
+        if (si->capabilities[i].type == mPreferredFormat) {
+            capability = &si->capabilities[i];
+            break;
+        } else if (si->capabilities[i].type == MIMETYPE_AUDIO_RAW) {
+            capability = &si->capabilities[i];
+        }
+    }
+
+    if (capability == NULL) {
+        QCC_LogError(ER_FAIL, ("Sink does not even support raw format"));
+        return false;
+    }
+
+    si->encoder = AudioEncoder::Create(capability->type.c_str());
+    si->encoder->Configure(theSourceAnti);
+    si->selectedCapability = new Capability;
+    si->encoder->GetConfiguration(si->selectedCapability);
+    si->framesPerPacket = si->encoder->GetFrameSize();
+
+    MsgArg connectArgs[3];
+    connectArgs[0].Set("s", ""); // host
+    connectArgs[1].Set("o", "/"); // path
+    Message connectReply(*mMsgBus);
+    CAPABILITY_TO_MSGARG((*si->selectedCapability), connectArgs[2]);
+    status = si->portObj->MethodCall(PORT_INTERFACE, "Connect", connectArgs, 3, connectReply);
+
+    delete [] si->selectedCapability->parameters;
+    si->selectedCapability->parameters = NULL;
+    si->selectedCapability->numParameters = 0;
+
+    if (status == ER_OK) {
+        QCC_DbgTrace(("Port.Connect(%s) success", si->selectedCapability->type.c_str()));
+    } else {
+        QCC_LogError(status, ("Port.Connect() failed"));
+        return false;
+    }
+
+    /* Get FifoSize */
+    MsgArg fifoSizeReply;
+    status = si->portObj->GetProperty(AUDIO_SINK_INTERFACE, "FifoSize", fifoSizeReply);
+    if (status == ER_OK) {
+        status = fifoSizeReply.Get("u", &si->fifoSize);
+        if (status != ER_OK) {
+            QCC_LogError(status, ("Bad FifoSize property"));
+            return false;
+        }
+    } else {
+        QCC_LogError(status, ("GetProperty(FifoSize) failed"));
+        return false;
+    }
+
+    int64_t diffTime = 0;
+    for (int i = 0; i < 5; i++) {
+        uint64_t time = GetCurrentTimeNanos();
+        MsgArg setTimeArgs[1];
+        setTimeArgs[0].Set("t", time);
+        Message setTimeReply(*mMsgBus);
+        status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
+        uint64_t newTime = GetCurrentTimeNanos();
+        if (ER_OK == status) {
+            QCC_DbgTrace(("Port.SetTime(%" PRIu64 ") success", time));
+        } else {
+            QCC_LogError(status, ("Port.SetTime() failed"));
+            return false;
+        }
+
+        diffTime = (newTime - time) / 2;
+        if (diffTime < 10000000) { // 10ms
+            break;
+        }
+
+        /* Sleep for 1s and try again */
+        SleepNanos(1000000000);
+    }
+
+    MsgArg adjustTimeArgs[1];
+    adjustTimeArgs[0].Set("x", diffTime);
+    Message adjustTimeReply(*mMsgBus);
+    status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
+    if (ER_OK == status) {
+        QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));
+    } else {
+        QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
+        return false;
+    }
+
+    si->fifoPositionHandler = new FifoPositionHandler();
+    status = si->fifoPositionHandler->Register(mMsgBus,
+                                               si->portObj->GetPath().c_str(), si->sessionId);
+    if (status != ER_OK) {
+        QCC_LogError(status, ("FifoPositionHandler.Register() failed"));
+        return false;
+    }
+
+    mSinksMutex->Lock();
+    SinkInfo* fsi = NULL;
+    for (std::list<SinkInfo>::iterator it = mSinks.begin(); it != mSinks.end(); ++it) {
+        if (it->mState == SinkInfo::OPENED) {
+            fsi = &(*it);
+            break;
+        }
+    }
+    if (!fsi) {
+        /* Start from beginning if we're the first sink */
+        si->inputDataBytesRemaining = mDataSource->GetInputSize();
+        si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
+    } else {
+        /* Start with values from first sink, note these are in the future due to semi-full fifo */
+        fsi->timestampMutex.Lock();
+        si->timestamp = fsi->timestamp;
+        si->inputDataBytesRemaining = fsi->inputDataBytesRemaining;
+        fsi->timestampMutex.Unlock();
+
+        uint32_t inputDataBytesAvailable = mDataSource->GetInputSize() - si->inputDataBytesRemaining;
+        uint32_t bytesPerSecond = mDataSource->GetSampleRate() * mDataSource->GetBytesPerFrame();
+        uint32_t bytesDiff = ((double)(si->timestamp - GetCurrentTimeNanos()) / 1000000000) * bytesPerSecond;
+        bytesDiff = MIN(bytesDiff, inputDataBytesAvailable);
+        bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
+        uint32_t inputPacketBytes = mDataSource->GetBytesPerFrame() * si->framesPerPacket;
+        bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
+
+        /* Adjust values appropriately so that playback will start sooner on new sink */
+        si->timestamp -= (uint64_t)(((double)bytesDiff / bytesPerSecond) * 1000000000);
+        si->inputDataBytesRemaining += bytesDiff;
+    }
+    mSinksMutex->Unlock();
+
+    if (mState == PlayerState::PLAYING) {
+        EmitAudioInfo* eai = new EmitAudioInfo;
+        eai->sp = this;
+
+        mSinksMutex->Lock();
+        std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(si->serviceName));
+        eai->si = &(*it);
+        mSinksMutex->Unlock();
+
+        mEmitThreadsMutex->Lock();
+        Thread* t = new Thread("EmitAudio", &EmitAudioThread);
+        mEmitThreads[si->serviceName] = t;
+        t->Start(eai);
+        mEmitThreadsMutex->Unlock();
+    }
+
+    si->mState = SinkInfo::OPENED;
+    return true;
+}
+/*copy end here*/
 
 
 struct RemoveSinkInfo {
