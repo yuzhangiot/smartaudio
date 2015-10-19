@@ -358,6 +358,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     char* mPreferredFormat;
     char* mCurrentFormat;
     DataSource* mDataSource;
+    DataSource* mDataSourceAnti;
     ajn::MsgArg mChannelsArg;
     ajn::MsgArg mRateArg;
     ajn::MsgArg mFormatArg;
