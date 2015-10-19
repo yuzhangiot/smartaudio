@@ -902,7 +902,7 @@ bool SinkPlayer::OpenSinkAnti(const char* name) {
         mSinksMutex->Unlock();
 
         mEmitThreadsMutex->Lock();
-        Thread* t = new Thread("EmitAudio", &EmitAudioThread;
+        Thread* t = new Thread("EmitAudio", &EmitAudioThreadAnti);
         mEmitThreads[si->serviceName] = t;
         t->Start(eai);
         mEmitThreadsMutex->Unlock();
