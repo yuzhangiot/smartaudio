@@ -608,7 +608,8 @@ bool SinkPlayer::OpenSink(const char* name) {
         }
 
         diffTime = (newTime - time) / 2;
-        if (diffTime < 10000000) { // 10ms
+        if (diffTime < 4000000) { // from 10ms to 4ms
+            printf("The diff time is %d ms\n", diffTime/1000000);
             break;
         }
 
@@ -832,7 +833,7 @@ bool SinkPlayer::OpenSinkAnti(const char* name) {
         }
 
         diffTime = (newTime - time) / 2;
-        if (diffTime < 10000000) { // 10ms
+        if (diffTime < 4000000) { // 10ms to 4ms
             break;
         }
 
