@@ -612,6 +612,7 @@ bool SinkPlayer::OpenSink(const char* name) {
             printf("The diff time is %d ms\n", diffTime/1000000);
             break;
         }
+        printf("It is the %d time, the overall diff time is %d\n", i, diffTime/1000000);
 
         /* Sleep for 1s and try again */
         SleepNanos(1000000000);
