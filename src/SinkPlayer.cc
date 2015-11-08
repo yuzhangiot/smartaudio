@@ -615,6 +615,7 @@ bool SinkPlayer::OpenSink(const char* name) {
             }
             else{
                 diffTime = 8000000;
+                break;
             }
             
         }
