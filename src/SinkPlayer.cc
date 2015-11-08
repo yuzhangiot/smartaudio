@@ -667,7 +667,7 @@ bool SinkPlayer::OpenSink(const char* name) {
         bytesDiff = MIN(bytesDiff, inputDataBytesAvailable);
         // bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
         uint32_t inputPacketBytes = mDataSource->GetBytesPerFrame() * si->framesPerPacket;
-        bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
+        // bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
 
         /* Adjust values appropriately so that playback will start sooner on new sink */
         si->timestamp -= (uint64_t)(((double)bytesDiff / bytesPerSecond) * 1000000000);
