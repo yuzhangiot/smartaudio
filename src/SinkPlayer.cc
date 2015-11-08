@@ -652,8 +652,8 @@ bool SinkPlayer::OpenSink(const char* name) {
     if (!fsi) {
         /* Start from beginning if we're the first sink */
         si->inputDataBytesRemaining = mDataSource->GetInputSize();
-        // si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
-        si->timestamp = GetCurrentTimeNanos();
+        si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
+        // si->timestamp = GetCurrentTimeNanos();
     } else {
         /* Start with values from first sink, note these are in the future due to semi-full fifo */
         fsi->timestampMutex.Lock();
@@ -665,9 +665,9 @@ bool SinkPlayer::OpenSink(const char* name) {
         uint32_t bytesPerSecond = mDataSource->GetSampleRate() * mDataSource->GetBytesPerFrame();
         uint32_t bytesDiff = ((double)(si->timestamp - GetCurrentTimeNanos()) / 1000000000) * bytesPerSecond;
         bytesDiff = MIN(bytesDiff, inputDataBytesAvailable);
-        // bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
+        bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
         uint32_t inputPacketBytes = mDataSource->GetBytesPerFrame() * si->framesPerPacket;
-        // bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
+        bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
 
         /* Adjust values appropriately so that playback will start sooner on new sink */
         si->timestamp -= (uint64_t)(((double)bytesDiff / bytesPerSecond) * 1000000000);

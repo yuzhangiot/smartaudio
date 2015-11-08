@@ -36,7 +36,8 @@ namespace services {
  * The maximum number of frames to return in one call of Decode() or
  * Encode().
  */
-const uint32_t FRAMES_PER_PACKET = 16384;
+// const uint32_t FRAMES_PER_PACKET = 16384;
+const uint32_t FRAMES_PER_PACKET = 4096;
 
 /**
  * The base class of audio decoders used by AudioSinkObject.
