@@ -593,7 +593,7 @@ bool SinkPlayer::OpenSink(const char* name) {
     }
 
     int64_t diffTime = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 50; i++) {
         uint64_t time = GetCurrentTimeNanos();
         MsgArg setTimeArgs[1];
         setTimeArgs[0].Set("t", time);
@@ -608,15 +608,22 @@ bool SinkPlayer::OpenSink(const char* name) {
         }
 
         diffTime = (newTime - time) / 2;
-        if (diffTime < 4000000) { // from 10ms to 4ms
-            printf("The diff time is %d ms\n", diffTime/1000000);
-            break;
+        if (diffTime < 10000000) { // from 10ms to 4ms
+            if (diffTime > 8000000){
+                printf("The diff time is %d ms\n", diffTime/1000000);
+                break;
+            }
+            else{
+                diffTime = 8000000;
+            }
+            
         }
-        printf("It is the %d time, the overall diff time is %d\n", i, diffTime/1000000);
+        printf("It is the %d time, the diff time is %d ms\n", i, diffTime/1000000);
 
         /* Sleep for 1s and try again */
         SleepNanos(1000000000);
     }
+    printf("The overall diff time is %d ms\n", diffTime/1000000);
 
     MsgArg adjustTimeArgs[1];
     adjustTimeArgs[0].Set("x", diffTime);
