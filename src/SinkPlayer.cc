@@ -593,7 +593,7 @@ bool SinkPlayer::OpenSink(const char* name) {
     }
 
     int64_t diffTime = 0;
-    int64_t timelimit = 8000000;
+    int64_t timelimit = 9000000;
     for (int i = 0; i < 50; i++) {
         uint64_t time = GetCurrentTimeNanos();
         MsgArg setTimeArgs[1];
