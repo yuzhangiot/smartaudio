@@ -593,7 +593,7 @@ bool SinkPlayer::OpenSink(const char* name) {
     }
 
     int64_t diffTime = 0;
-    int64_t timelimit = 6000000;
+    int64_t timelimit = 8000000;
     for (int i = 0; i < 50; i++) {
         uint64_t time = GetCurrentTimeNanos();
         MsgArg setTimeArgs[1];
@@ -665,7 +665,7 @@ bool SinkPlayer::OpenSink(const char* name) {
         uint32_t bytesPerSecond = mDataSource->GetSampleRate() * mDataSource->GetBytesPerFrame();
         uint32_t bytesDiff = ((double)(si->timestamp - GetCurrentTimeNanos()) / 1000000000) * bytesPerSecond;
         bytesDiff = MIN(bytesDiff, inputDataBytesAvailable);
-        bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
+        // bytesDiff = bytesDiff * 0.90; /* Temporary to avoid sending outdated chunks */
         uint32_t inputPacketBytes = mDataSource->GetBytesPerFrame() * si->framesPerPacket;
         bytesDiff = bytesDiff - (bytesDiff % inputPacketBytes);
 
