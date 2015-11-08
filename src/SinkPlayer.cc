@@ -616,7 +616,7 @@ bool SinkPlayer::OpenSink(const char* name) {
             
         }
         printf("It is the %d time, the diff time is %lld ms\n", i, diffTime/1000000);
-        timelimit += 1000000;
+        timelimit += 100000;
         /* Sleep for 1s and try again */
         SleepNanos(1000000000);
     }
@@ -652,7 +652,8 @@ bool SinkPlayer::OpenSink(const char* name) {
     if (!fsi) {
         /* Start from beginning if we're the first sink */
         si->inputDataBytesRemaining = mDataSource->GetInputSize();
-        si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
+        // si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
+        si->timestamp = GetCurrentTimeNanos();
     } else {
         /* Start with values from first sink, note these are in the future due to semi-full fifo */
         fsi->timestampMutex.Lock();
