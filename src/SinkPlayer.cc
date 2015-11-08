@@ -593,7 +593,7 @@ bool SinkPlayer::OpenSink(const char* name) {
     }
 
     int64_t diffTime = 0;
-    int64_t timelimit = 4000000;
+    int64_t timelimit = 6000000;
     for (int i = 0; i < 50; i++) {
         uint64_t time = GetCurrentTimeNanos();
         MsgArg setTimeArgs[1];
@@ -616,7 +616,7 @@ bool SinkPlayer::OpenSink(const char* name) {
             
         }
         printf("It is the %d time, the diff time is %lld ms\n", i, diffTime/1000000);
-        timelimit += 100000;
+        timelimit += 200000;
         /* Sleep for 1s and try again */
         SleepNanos(1000000000);
     }

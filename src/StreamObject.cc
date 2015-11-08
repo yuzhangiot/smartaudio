@@ -310,7 +310,7 @@ void StreamObject::SetTime(const InterfaceDescription::Member* member, Message& 
 
     mClockAdjustment = ((int64_t)adj.tv_sec * 1000000000) + adj.tv_nsec;
     QCC_DbgHLPrintf(("Clock adjustment is %" PRId64, mClockAdjustment));
-    printf("set time adjust time is %lld\n", mClockAdjustment);
+    printf("set time adjust time is %lld\n", mClockAdjustment/1000000);
     REPLY_OK();
 }
 
@@ -319,7 +319,7 @@ void StreamObject::AdjustTime(const InterfaceDescription::Member* member, Messag
 
     mClockAdjustment += args[0].v_int64;
     QCC_DbgHLPrintf(("Clock adjustment is %" PRId64, mClockAdjustment));
-    printf("adjust time adjust time is %lld\n", mClockAdjustment);
+    printf("adjust time adjust time is %lld\n", mClockAdjustment/1000000);
     REPLY_OK();
 }
 
