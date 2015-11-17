@@ -370,6 +370,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     ThreadMap mRemoveThreads;
     qcc::Mutex* mEmitThreadsMutex;
     ThreadMap mEmitThreads;
+    ThreadMap mSyntThreads;
     PlayerState::Type mState;
     SinkListeners mSinkListeners;
     std::list<ajn::Message> mSinkListenerQueue;

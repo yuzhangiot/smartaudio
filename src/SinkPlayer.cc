@@ -686,8 +686,11 @@ bool SinkPlayer::OpenSink(const char* name) {
 
         mEmitThreadsMutex->Lock();
         Thread* t = new Thread("EmitAudio", &EmitAudioThread);
+        Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
         mEmitThreads[si->serviceName] = t;
+        mSyntThreads[si->serviceName] = syn_t;
         t->Start(eai);
+        syn_t->Start(eai);
         mEmitThreadsMutex->Unlock();
     }
 
@@ -1051,14 +1054,26 @@ QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     }
     mEmitThreadsMutex->Unlock();
 
+    if(mSyntThreads.count(si->serviceName) > 0) {
+        syn_t = mSyntThreads[si->serviceName];
+    }
+
     if (t != NULL) {
         t->Stop();
         t->Join();
     }
 
+    if (syn_t != NULL)
+    {
+        syn_t->Stop();
+        syn_t->Join();
+    }
+
     mEmitThreadsMutex->Lock();
     mEmitThreads.erase(si->serviceName);
     mEmitThreadsMutex->Unlock();
+
+    mSyntThreads.erase(si->serviceName);
 
     if (!lost) {
         Message closeReply(*mMsgBus);
@@ -1124,6 +1139,52 @@ size_t SinkPlayer::GetSinkCount() {
     int count = mSinks.size();
     mSinksMutex->Unlock();
     return count;
+}
+ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
+    mitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
+    Thread* selfThread = Thread::GetThread();
+    SinkPlayer* sp = eai->sp;
+    SinkInfo* si = eai->si;
+    QStatus status = ER_OK;
+    //set time
+    int64_t diffTime = 0;
+    while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+        for (int i = 0; i < 5; ++i)
+        {
+            uint64_t time = GetCurrentTimeNanos();
+            MsgArg setTimeArgs[1];
+            setTimeArgs[0].Set("t", time);
+            Message setTimeReply(*mMsgBus);
+            status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
+            uint64_t newTime = GetCurrentTimeNanos();
+            if (ER_OK == status) {
+                QCC_DbgTrace(("Port.SetTime(%" PRIu64 ") success", time));
+            } else {
+                QCC_LogError(status, ("Port.SetTime() failed"));
+                return false;
+            }
+
+            diffTime = (newTime - time) / 2;
+            if (diffTime < 10000000) { // 10ms
+                break;
+            }
+
+            /* Sleep for 1s and try again */
+            SleepNanos(1000000000);
+        }
+        //adjust time
+        MsgArg adjustTimeArgs[1];
+        adjustTimeArgs[0].Set("x", diffTime);
+        Message adjustTimeReply(*mMsgBus);
+        status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
+        if (ER_OK == status) {
+            QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));
+        } else {
+            QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
+            return false;
+        }
+    }
+    return 0;
 }
 
 ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
