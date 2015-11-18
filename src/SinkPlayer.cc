@@ -1143,7 +1143,7 @@ size_t SinkPlayer::GetSinkCount() {
 }
 
 ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
-    mitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
+    EmitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
     Thread* selfThread = Thread::GetThread();
     SinkPlayer* sp = eai->sp;
     SinkInfo* si = eai->si;
