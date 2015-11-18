@@ -1143,6 +1143,7 @@ size_t SinkPlayer::GetSinkCount() {
 }
 
 ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
+    /*
     EmitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
     Thread* selfThread = Thread::GetThread();
     SinkPlayer* sp = eai->sp;
@@ -1171,7 +1172,6 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
                 break;
             }
 
-            /* Sleep for 1s and try again */
             SleepNanos(1000000000);
         }
         //adjust time
@@ -1186,6 +1186,11 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             return false;
         }
     }
+    */
+     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+        printf("Hello time syn!\n");
+        SleepNanos(1000000000);
+     }
     return 0;
 }
 

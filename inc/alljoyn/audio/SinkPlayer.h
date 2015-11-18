@@ -220,8 +220,6 @@ class SinkPlayer : public ajn::MessageReceiver {
     bool OpenSink(const char* name);
 
     bool OpenSinkAnti(const char* name);
-    
-    void* SyncTimeThread(void* arg);
 
     /**
      * Opens the stream to all sinks that are part of the streaming session.
@@ -333,6 +331,7 @@ class SinkPlayer : public ajn::MessageReceiver {
   private:
 
     static void* AddSinkThread(void* arg);
+    static void* SyncTimeThread(void* arg);
     static void* EmitAudioThread(void* arg);
     static void* EmitAudioThreadAnti(void* arg);
 
