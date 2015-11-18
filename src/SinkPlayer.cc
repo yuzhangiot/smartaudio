@@ -1151,7 +1151,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     SinkPlayer* sp = eai->sp;
     SinkInfo* si = eai->si;
     QStatus status = ER_OK;
-    /*
+    
     //set time
     int64_t diffTime = 0;
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
@@ -1188,7 +1188,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
             return false;
         }
-    }*/
+    }
     
      while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
         printf("Hello time syn!\n");
