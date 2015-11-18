@@ -1159,7 +1159,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             uint64_t time = GetCurrentTimeNanos();
             MsgArg setTimeArgs[1];
             setTimeArgs[0].Set("t", time);
-            Message setTimeReply(sp->*mMsgBus);
+            Message setTimeReply(sp->mMsgBus);
             status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
             uint64_t newTime = GetCurrentTimeNanos();
             if (ER_OK == status) {
@@ -1179,7 +1179,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         //adjust time
         MsgArg adjustTimeArgs[1];
         adjustTimeArgs[0].Set("x", diffTime);
-        Message adjustTimeReply(sp->*mMsgBus);
+        Message adjustTimeReply(sp->mMsgBus);
         status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
         if (ER_OK == status) {
             QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));
