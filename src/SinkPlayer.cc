@@ -74,6 +74,8 @@ class SignallingObject : public BusObject {
   private:
     const InterfaceDescription::Member* mAudioDataMember;
 
+    ajn::BusAttachment* mMsgBus;
+
     QStatus Get(const char* ifcName, const char* propName, MsgArg& val) {
         QStatus status = ER_OK;
 
