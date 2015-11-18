@@ -44,6 +44,7 @@ struct SinkInfo;
 class SinkSessionListener;
 class SignallingObject;
 
+static ajn::BusAttachment* mMsgBus;
 /**
  * The various player states.
  */
@@ -355,7 +356,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     SignallingObject* mSignallingObject;
     qcc::Mutex* mSinkListenersMutex;
     SinkSessionListener* mSessionListener;
-    ajn::BusAttachment* mMsgBus;
+    // ajn::BusAttachment* mMsgBus;
     char* mPreferredFormat;
     char* mCurrentFormat;
     DataSource* mDataSource;
