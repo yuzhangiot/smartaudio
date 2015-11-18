@@ -1048,6 +1048,7 @@ bool SinkPlayer::CloseSink(const char* name) {
 
 QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     Thread* t = NULL;
+    Thread* syn_t = NULL;
     mEmitThreadsMutex->Lock();
     if (mEmitThreads.count(si->serviceName) > 0) {
         t = mEmitThreads[si->serviceName];
@@ -1140,6 +1141,7 @@ size_t SinkPlayer::GetSinkCount() {
     mSinksMutex->Unlock();
     return count;
 }
+
 ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     mitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
     Thread* selfThread = Thread::GetThread();

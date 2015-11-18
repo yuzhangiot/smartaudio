@@ -331,6 +331,7 @@ class SinkPlayer : public ajn::MessageReceiver {
   private:
 
     static void* AddSinkThread(void* arg);
+    static void* SyncTimeThread(void* arg);
     static void* EmitAudioThread(void* arg);
     static void* EmitAudioThreadAnti(void* arg);
 
