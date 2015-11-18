@@ -355,7 +355,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     SignallingObject* mSignallingObject;
     qcc::Mutex* mSinkListenersMutex;
     SinkSessionListener* mSessionListener;
-    static ajn::BusAttachment* mMsgBus;
+    ajn::BusAttachment* mMsgBus;
     char* mPreferredFormat;
     char* mCurrentFormat;
     DataSource* mDataSource;
