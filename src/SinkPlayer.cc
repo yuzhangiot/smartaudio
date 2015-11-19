@@ -1078,7 +1078,7 @@ QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     mSyntThreads.erase(si->serviceName);
 
     if (!lost) {
-        Message closeReply(sp->mMsgBus);
+        Message closeReply(*mMsgBus);
         QStatus status = si->streamObj->MethodCall(STREAM_INTERFACE, "Close", NULL, 0, closeReply);
         if (status == ER_OK) {
             QCC_DbgTrace(("Stream.Close() success"));
@@ -1088,7 +1088,7 @@ QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     }
 
     if (si->fifoPositionHandler != NULL) {
-        si->fifoPositionHandler->Unregister(mMsgBus);
+        si->fifoPositionHandler->Unregister(*mMsgBus);
         delete si->fifoPositionHandler;
         si->fifoPositionHandler = NULL;
     }
