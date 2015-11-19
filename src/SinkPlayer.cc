@@ -40,7 +40,7 @@ using namespace std;
 
 namespace ajn {
 namespace services {
-ajn::BusAttachment* SinkPlayer::mMsgBus;
+// ajn::BusAttachment* SinkPlayer::mMsgBus;
 
 class FifoPositionHandler;
 
@@ -1078,7 +1078,7 @@ QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     mSyntThreads.erase(si->serviceName);
 
     if (!lost) {
-        Message closeReply(*mMsgBus);
+        Message closeReply(sp->mMsgBus);
         QStatus status = si->streamObj->MethodCall(STREAM_INTERFACE, "Close", NULL, 0, closeReply);
         if (status == ER_OK) {
             QCC_DbgTrace(("Stream.Close() success"));
@@ -1160,7 +1160,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             uint64_t time = GetCurrentTimeNanos();
             MsgArg setTimeArgs[1];
             setTimeArgs[0].Set("t", time);
-            Message setTimeReply(*mMsgBus);
+            Message setTimeReply(*sp->mMsgBus);
             status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
             uint64_t newTime = GetCurrentTimeNanos();
             if (ER_OK == status) {
@@ -1180,7 +1180,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         //adjust time
         MsgArg adjustTimeArgs[1];
         adjustTimeArgs[0].Set("x", diffTime);
-        Message adjustTimeReply(*mMsgBus);
+        Message adjustTimeReply(*sp->mMsgBus);
         status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
         if (ER_OK == status) {
             QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));

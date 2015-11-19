@@ -328,6 +328,9 @@ class SinkPlayer : public ajn::MessageReceiver {
      */
     bool SetVolume(const char* name, int16_t volume);
 
+
+    ajn::BusAttachment* mMsgBus;
+
   private:
 
     static void* AddSinkThread(void* arg);
@@ -355,7 +358,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     SignallingObject* mSignallingObject;
     qcc::Mutex* mSinkListenersMutex;
     SinkSessionListener* mSessionListener;
-    static ajn::BusAttachment* mMsgBus;
+    
     char* mPreferredFormat;
     char* mCurrentFormat;
     DataSource* mDataSource;
