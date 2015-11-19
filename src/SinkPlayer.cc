@@ -685,6 +685,8 @@ bool SinkPlayer::OpenSink(const char* name) {
         eai->si = &(*it);
         mSinksMutex->Unlock();
 
+        printf("servicename is %s\n", si->servicename);
+
         mEmitThreadsMutex->Lock();
         Thread* t = new Thread("EmitAudio", &EmitAudioThread);
         Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
