@@ -1177,6 +1177,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
             SleepNanos(1000000000);
         }
+        printf("The transfer time is %lld ms\n", diffTime/1000000);
         //adjust time
         MsgArg adjustTimeArgs[1];
         adjustTimeArgs[0].Set("x", diffTime);
