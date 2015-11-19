@@ -1088,7 +1088,7 @@ QStatus SinkPlayer::CloseSink(SinkInfo* si, bool lost) {
     }
 
     if (si->fifoPositionHandler != NULL) {
-        si->fifoPositionHandler->Unregister(*mMsgBus);
+        si->fifoPositionHandler->Unregister(mMsgBus);
         delete si->fifoPositionHandler;
         si->fifoPositionHandler = NULL;
     }
