@@ -44,7 +44,6 @@ struct SinkInfo;
 class SinkSessionListener;
 class SignallingObject;
 
-static ajn::BusAttachment* mMsgBus;
 /**
  * The various player states.
  */
