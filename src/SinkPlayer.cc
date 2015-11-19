@@ -1202,7 +1202,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             return false;
         }
 
-        SleepNanos(1000000000*9);
+        SleepNanos(10000000000);
     }
     
     return 0;
