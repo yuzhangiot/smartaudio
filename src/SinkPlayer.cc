@@ -1182,8 +1182,9 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             SleepNanos(1000000000);
         }
         // printf("The transfer time is %lld ms\n", diffTime/1000000);
+        string sn = si->serviceName;
         
-        if (*si->serviceName == ":k2ObQMDh.52")
+        if (sn == ":k2ObQMDh.52")
         {
             addtime = 100000;
             sumtime += addtime;
