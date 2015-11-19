@@ -1154,7 +1154,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     QStatus status = ER_OK;
     
     int64_t sumtime = 0;
-    int64_t addtime =0;
+    int64_t addtime_min = -10000000;
+    int64_t addtime_max = 10000000;
     // SinkPlayer 
     //set time
     int64_t diffTime = 0;
@@ -1182,15 +1183,12 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             SleepNanos(1000000000);
         }
         // printf("The transfer time is %lld ms\n", diffTime/1000000);
-        string sn = si->serviceName;
         
-        if (sn == ":k2ObQMDh.52")
-        {
-            addtime = 100000;
-            sumtime += addtime;
-            float sumtime_f = sumtime/1000000;
-            printf("The random adj time is %f ms\n", sumtime_f);
-        }
+        sumtime = (rand()%(addtime_max - addtime_min + 1)) + addtime_min;
+        // sumtime += addtime;
+        float sumtime_f = sumtime/1000000;
+        printf("The random adj time is %f ms\n", sumtime_f);
+
         diffTime += sumtime;
         //adjust time
         MsgArg adjustTimeArgs[1];
@@ -1204,7 +1202,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             return false;
         }
 
-        SleepNanos(1000000000 * 10);
+        SleepNanos(1000000000*9);
     }
     
     return 0;
