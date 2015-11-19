@@ -1188,12 +1188,10 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
             return false;
         }
+
+        SleepNanos(1000000000);
     }
     
-     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
-        printf("Hello time syn!\n");
-        SleepNanos(1000000000);
-     }
     return 0;
 }
 
