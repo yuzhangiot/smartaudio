@@ -40,6 +40,7 @@ using namespace std;
 
 namespace ajn {
 namespace services {
+static ajn::BusAttachment* SinkPlay::mMsgBus;
 
 class FifoPositionHandler;
 
