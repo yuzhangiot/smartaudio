@@ -63,6 +63,7 @@ struct SinkInfo {
     uint32_t inputDataBytesRemaining;
     qcc::Mutex timestampMutex;
     uint64_t timestamp;
+    uint64_t offsettime;
 };
 
 struct FindSink {
@@ -466,6 +467,19 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
     return NULL;
 }
 
+bool SinkPlayer::addoffset(const char* name, uint64_t offset){
+    mSinksMutex->Lock();
+    std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
+    SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
+
+    si->offsettime = offset;
+    mSinksMutex->Unlock();
+
+   
+    printf("The offset time is %lld ms\n", si->offsettime/1000000);
+
+}
+
 bool SinkPlayer::OpenSink(const char* name) {
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
@@ -650,6 +664,7 @@ bool SinkPlayer::OpenSink(const char* name) {
             break;
         }
     }
+    si->offsettime = 0; /* init the offset time */
     if (!fsi) {
         /* Start from beginning if we're the first sink */
         si->inputDataBytesRemaining = mDataSource->GetInputSize();
@@ -1232,7 +1247,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
             uint32_t numBytesToEmit = numBytes;
             si->encoder->Encode(&buffer, &numBytesToEmit);
 
-            sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp);
+            sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp + si->offsettime);
 
             si->timestampMutex.Lock();
             si->timestamp += (uint64_t)(((double)numBytes / bytesPerSecond) * 1000000000);
@@ -1301,7 +1316,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
                 if (si->timestamp < now) {
                     QCC_LogError(ER_WARNING, ("Skipping emit of audio that's outdated by %" PRIu64 " nanos", now - si->timestamp));
                 } else {
-                    sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp);
+                    sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp + si->offsettime);
                     QCC_DbgTrace(("%d: timestamp %" PRIu64 " numBytes %d bytesPerSecond %d", si->sessionId, si->timestamp, numBytes, bytesPerSecond));
                     bytesEmitted += numBytes;
                     QCC_DbgTrace(("Emitted %i bytes", numBytes));
