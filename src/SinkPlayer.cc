@@ -477,7 +477,7 @@ bool SinkPlayer::addoffset(const char* name, uint64_t offset){
     mSinksMutex->Unlock();
 
    
-    printf("The offset time is %lld ms\n", si->offsettime/1000000);
+    printf("The offset time is %lld ns\n", si->offsettime);
 
     return true;
 
