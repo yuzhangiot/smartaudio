@@ -476,11 +476,12 @@ bool SinkPlayer::addoffset(const char* name, int offset){
     // si->offsettime += (uint64_t)(offset * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000);
     mSinksMutex->Unlock();
 
-    int64_t showdifftime =  (int64_t)(si->offsettime * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000);    
+    // int64_t showdifftime =  (int64_t)(si->offsettime * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000);
+    int showdifftime = si->offsettime * 200;
     // printf("The frame/packge is %lu\n",si->framesPerPacket);
     // printf("The frame/second is %lf\n",mDataSource->GetSampleRate());
    
-    printf("The offset time is %lld ns\n", showdifftime);
+    printf("The offset time is %d ns\n", showdifftime);
 
     return true;
 
@@ -1243,7 +1244,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
         if (sp->mDataSource->IsDataReady()) {
-            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * inputPacketBytes, inputPacketBytes);
+            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * 200 * bytesPerSecond, inputPacketBytes);
             if (numBytes == 0) {            //EOF
                 si->inputDataBytesRemaining = 0;
                 break;
@@ -1309,7 +1310,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
         while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= bytesToWrite) {
             if (sp->mDataSource->IsDataReady()) {
-                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * inputPacketBytes, inputPacketBytes);
+                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * 200 * bytesPerSecond, inputPacketBytes);
                 if (numBytes == 0) {                //EOF
                     si->inputDataBytesRemaining = 0;
                     break;
