@@ -292,7 +292,7 @@ int main(int argc, char** argv, char** envArg) {
             } else if (strcmp(buf, "test02") == 0) {
                 g_sinkPlayer->CloseOneSink();
 
-            } else if (sscanf(buf, "kill %128s %d", name, &i) == 1) {
+            } else if (sscanf(buf, "kill %128s %d", name, &i) == 2) {
                 printf("Smart audio says: Hello orld!\n");
 
                 g_sinkPlayer->addoffset(name, i); /* add 1 step to the sink*/
