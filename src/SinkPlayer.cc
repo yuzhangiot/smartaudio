@@ -1244,7 +1244,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
         if (sp->mDataSource->IsDataReady()) {
-            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * 200 * bytesPerSecond / 1000000, inputPacketBytes);
+            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (uint32_t)(si->offsettime * 200 * (double)(bytesPerSecond / 1000000)), inputPacketBytes);
             if (numBytes == 0) {            //EOF
                 si->inputDataBytesRemaining = 0;
                 break;
@@ -1310,7 +1310,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
         while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= bytesToWrite) {
             if (sp->mDataSource->IsDataReady()) {
-                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * 200 * bytesPerSecond / 1000000, inputPacketBytes);
+                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (uint32_t)(si->offsettime * 200 * (double)(bytesPerSecond / 1000000)), inputPacketBytes);
                 if (numBytes == 0) {                //EOF
                     si->inputDataBytesRemaining = 0;
                     break;
