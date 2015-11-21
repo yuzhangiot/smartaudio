@@ -473,7 +473,7 @@ bool SinkPlayer::addoffset(const char* name, uint64_t offset){
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
 
 
-    si->offsettime = offset * si->framesPerPacket / mDataSource->GetSampleRate;
+    si->offsettime = offset * (si->framesPerPacket / mDataSource->GetSampleRate);
     mSinksMutex->Unlock();
 
    
