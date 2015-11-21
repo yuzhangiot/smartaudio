@@ -37,7 +37,7 @@ namespace services {
  * Encode().
  */
 // const uint32_t FRAMES_PER_PACKET = 16384;
-const uint32_t FRAMES_PER_PACKET = 512;
+const uint32_t FRAMES_PER_PACKET = 128;
 
 /**
  * The base class of audio decoders used by AudioSinkObject.
