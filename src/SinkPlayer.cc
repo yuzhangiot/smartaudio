@@ -467,7 +467,7 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
     return NULL;
 }
 
-bool SinkPlayer::addoffset(const char* name, uint64_t offset){
+bool SinkPlayer::addoffset(const char* name, int offset){
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
@@ -476,10 +476,11 @@ bool SinkPlayer::addoffset(const char* name, uint64_t offset){
     // si->offsettime += (uint64_t)(offset * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000);
     mSinksMutex->Unlock();
 
+    uint64_t showdifftime =  (uint64_t)(si->offsettime * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000);    
     // printf("The frame/packge is %lu\n",si->framesPerPacket);
     // printf("The frame/second is %lf\n",mDataSource->GetSampleRate());
    
-    printf("The offset time is %llu ns\n", si->offsettime);
+    printf("The offset time is %llu ns\n", showdifftime/1000);
 
     return true;
 
