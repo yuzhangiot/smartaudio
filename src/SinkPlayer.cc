@@ -63,7 +63,7 @@ struct SinkInfo {
     uint32_t inputDataBytesRemaining;
     qcc::Mutex timestampMutex;
     uint64_t timestamp;
-    uint64_t offsettime;
+    int64_t offsettime;
 };
 
 struct FindSink {
@@ -476,7 +476,7 @@ bool SinkPlayer::addoffset(const char* name, int offset){
     // si->offsettime += (uint64_t)(offset * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000);
     mSinksMutex->Unlock();
 
-    int64_t showdifftime =  (uint64_t)(si->offsettime * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000);    
+    int64_t showdifftime =  (int64_t)(si->offsettime * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000);    
     // printf("The frame/packge is %lu\n",si->framesPerPacket);
     // printf("The frame/second is %lf\n",mDataSource->GetSampleRate());
    
