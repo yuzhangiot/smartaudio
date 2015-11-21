@@ -472,12 +472,12 @@ bool SinkPlayer::addoffset(const char* name, uint64_t offset){
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
 
-
-    si->offsettime += (uint64_t)(offset * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000);
+    si->offsettime += offset;
+    // si->offsettime += (uint64_t)(offset * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000);
     mSinksMutex->Unlock();
 
-    printf("The frame/packge is %llu\n",si->framesPerPacket);
-    printf("The frame/second is %llu\n",mDataSource->GetSampleRate());
+    // printf("The frame/packge is %lu\n",si->framesPerPacket);
+    // printf("The frame/second is %lf\n",mDataSource->GetSampleRate());
    
     printf("The offset time is %llu ns\n", si->offsettime);
 
@@ -1242,7 +1242,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
         if (sp->mDataSource->IsDataReady()) {
-            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining, inputPacketBytes);
+            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * inputPacketBytes, inputPacketBytes);
             if (numBytes == 0) {            //EOF
                 si->inputDataBytesRemaining = 0;
                 break;
@@ -1252,8 +1252,8 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
             uint32_t numBytesToEmit = numBytes;
             si->encoder->Encode(&buffer, &numBytesToEmit);
 
-            printf("1.The offset time of %s is %llu\n", si->serviceName, si->offsettime);
-            sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp + si->offsettime);
+            // printf("1.The offset time of %s is %llu\n", si->serviceName, si->offsettime);
+            sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp);
 
             si->timestampMutex.Lock();
             si->timestamp += (uint64_t)(((double)numBytes / bytesPerSecond) * 1000000000);
@@ -1308,7 +1308,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
         while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= bytesToWrite) {
             if (sp->mDataSource->IsDataReady()) {
-                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining, inputPacketBytes);
+                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime * inputPacketBytes, inputPacketBytes);
                 if (numBytes == 0) {                //EOF
                     si->inputDataBytesRemaining = 0;
                     break;
@@ -1322,7 +1322,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
                 if (si->timestamp < now) {
                     QCC_LogError(ER_WARNING, ("Skipping emit of audio that's outdated by %" PRIu64 " nanos", now - si->timestamp));
                 } else {
-                    printf("2.The offset time of %s is %llu\n", si->serviceName, si->offsettime);
+                    // printf("2.The offset time of %s is %llu\n", si->serviceName, si->offsettime);
                     sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp + si->offsettime);
                     QCC_DbgTrace(("%d: timestamp %" PRIu64 " numBytes %d bytesPerSecond %d", si->sessionId, si->timestamp, numBytes, bytesPerSecond));
                     bytesEmitted += numBytes;
