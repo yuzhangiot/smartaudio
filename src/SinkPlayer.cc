@@ -1242,6 +1242,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
     uint8_t* readBuffer = (uint8_t*)calloc(inputPacketBytes, 1);
     uint32_t bytesEmitted = 0;
 
+    printf("the bytes per second is %d\n", bytesPerSecond);
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
         if (sp->mDataSource->IsDataReady()) {
             int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (int32_t)(si->offsettime * bytesPerSecond / 1000000), inputPacketBytes);
