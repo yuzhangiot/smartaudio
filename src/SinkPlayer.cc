@@ -1254,7 +1254,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
             uint32_t numBytesToEmit = numBytes;
             si->encoder->Encode(&buffer, &numBytesToEmit);
 
-            printf("1.The offset time of %s is %ld\n", si->serviceName, (int32_t)(si->offsettime * bytesPerSecond / 1000000)));
+            printf("1.The offset time of %s is %d\n", si->serviceName, (int32_t)(si->offsettime * bytesPerSecond / 1000000));
             sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp);
 
             si->timestampMutex.Lock();
@@ -1324,7 +1324,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
                 if (si->timestamp < now) {
                     QCC_LogError(ER_WARNING, ("Skipping emit of audio that's outdated by %" PRIu64 " nanos", now - si->timestamp));
                 } else {
-                    printf("2.The offset time of %s is %ld\n", si->serviceName, (int32_t)(si->offsettime * (double)(bytesPerSecond / 1000000)));
+                    printf("2.The offset time of %s is %d\n", si->serviceName, (int32_t)(si->offsettime * bytesPerSecond / 1000000));
                     sp->mSignallingObject->EmitAudioDataSignal(si->sessionId, buffer, numBytesToEmit, si->timestamp + si->offsettime);
                     QCC_DbgTrace(("%d: timestamp %" PRIu64 " numBytes %d bytesPerSecond %d", si->sessionId, si->timestamp, numBytes, bytesPerSecond));
                     bytesEmitted += numBytes;
