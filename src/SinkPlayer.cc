@@ -467,7 +467,7 @@ ThreadReturn SinkPlayer::AddSinkThread(void* arg) {
     return NULL;
 }
 
-bool SinkPlayer::addoffset(const char* name, int64_t offset){
+bool SinkPlayer::addoffset(const char* name, int32_t offset){
     mSinksMutex->Lock();
     std::list<SinkInfo>::iterator it = find_if(mSinks.begin(), mSinks.end(), FindSink(name));
     SinkInfo* si = (it != mSinks.end()) ? &(*it) : NULL;
@@ -1245,7 +1245,8 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
     printf("the bytes per second is %d\n", bytesPerSecond);
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
         if (sp->mDataSource->IsDataReady()) {
-            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (int32_t)(si->offsettime * bytesPerSecond / 1000000), inputPacketBytes);
+            // int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (int32_t)(si->offsettime * bytesPerSecond / 1000000), inputPacketBytes);
+            int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime, inputPacketBytes);
             if (numBytes == 0) {            //EOF
                 si->inputDataBytesRemaining = 0;
                 break;
@@ -1311,7 +1312,7 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
 
         while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= bytesToWrite) {
             if (sp->mDataSource->IsDataReady()) {
-                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (int32_t)(si->offsettime * bytesPerSecond / 1000000), inputPacketBytes);
+                int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime, inputPacketBytes);
                 if (numBytes == 0) {                //EOF
                     si->inputDataBytesRemaining = 0;
                     break;
