@@ -476,10 +476,10 @@ bool SinkPlayer::addoffset(const char* name, uint64_t offset){
     si->offsettime = offset * (double)(si->framesPerPacket / mDataSource->GetSampleRate()) * 1000000000;
     mSinksMutex->Unlock();
 
-    printf("The frame/packge is %lld\n",si->framesPerPacket);
-    printf("The frame/second is %lld\n",mDataSource->GetSampleRate());
+    printf("The frame/packge is %llu\n",si->framesPerPacket);
+    printf("The frame/second is %llu\n",mDataSource->GetSampleRate());
    
-    printf("The offset time is %lld ns\n", si->offsettime);
+    printf("The offset time is %llu ns\n", si->offsettime);
 
     return true;
 
