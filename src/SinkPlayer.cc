@@ -27,6 +27,13 @@
 #include <algorithm>
 #include <inttypes.h>
 
+#include <curl/curl.h>
+#include <curl/easy.h>
+#include <curl/curlbuild.h>
+#include <vector>
+#include <iostream>
+#include <string>
+
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
 #ifndef MIN
