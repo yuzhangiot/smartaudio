@@ -16,7 +16,7 @@ Import('samples_env')
 
 # Platform specific libraries
 if samples_env['OS_GROUP'] == 'posix':
-    samples_env.Append(LIBS = ['asound'])
+    samples_env.Append(LIBS = ['asound','curl'])
 
 # Sample programs
 progs = [

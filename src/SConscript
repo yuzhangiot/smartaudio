@@ -24,7 +24,7 @@ if audio_env.has_key('ALAC_BASE'):
     audio_env.Append(CPPFLAGS = ['-Wno-multichar'])
     audio_env.Append(CPPPATH = ['$ALAC_BASE/codec'])
     audio_env.Append(LIBPATH = ['$ALAC_BASE/codec']);
-    audio_env.Append(LIBS = ['alac'])
+    audio_env.Append(LIBS = ['alac','curl'])
 
 
 # Platform specific sources

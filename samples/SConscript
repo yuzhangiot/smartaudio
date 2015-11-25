@@ -18,7 +18,7 @@ Import('audio_env')
 
 samples_env = audio_env.Clone()
 
-samples_env.Prepend(LIBS = ['alljoyn_audio', 'alljoyn_about'])
+samples_env.Prepend(LIBS = ['alljoyn_audio', 'alljoyn_about', 'curl'])
 
 if samples_env['BD'] == 'on':
     # Build apps with bundled daemon support
