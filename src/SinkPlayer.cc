@@ -1185,6 +1185,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     /* define the variables for HTTP GET from cloud */
     CURL *curl; //curl instance
     CURLcode res; //return result-> false or success
+    std::string micreadBuffer; //return value
    
     // int mic_firsttime_flag = 1;
     // uint64_t micfisttime = 0;
@@ -1199,14 +1200,14 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     //set time
     int64_t diffTime = 0;
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
-        std::string micreadBuffer; //return value
+        
         curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
         curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
         res = curl_easy_perform(curl);
         printf("The value i of microphone is %s",micreadBuffer.c_str());
-
+        micreadBuffer = '';
         for (int i = 0; i < 5; ++i)
         {
             uint64_t time = GetCurrentTimeNanos();
