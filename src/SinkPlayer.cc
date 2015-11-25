@@ -1237,8 +1237,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     return 0;
 }
 
-static size_t SinkPlayer::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
+size_t SinkPlayer::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp){
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
 }
