@@ -1189,6 +1189,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     string diffBuffer;
    
    size_t lastsize = 0;
+   size_t lastestsize = 0;
     // int mic_firsttime_flag = 1;
     // uint64_t micfisttime = 0;
     // uint64_t mictimenow = 0;
@@ -1209,7 +1210,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
         res = curl_easy_perform(curl);
-        auto lastestsize = sizeof(micreadBuffer);
+        lastestsize = sizeof(micreadBuffer);
         auto diffsize = lastestsize - lastsize;
         diffBuffer = micreadBuffer.substr(lastsize,diffsize);
         printf("The value i of microphone is %s",diffBuffer.c_str());
