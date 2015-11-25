@@ -1185,8 +1185,10 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     /* define the variables for HTTP GET from cloud */
     CURL *curl; //curl instance
     CURLcode res; //return result-> false or success
-    std::string micreadBuffer; //return value
+    string micreadBuffer; //return value
+    string diffBuffer;
    
+   size_t lastsize = 0;
     // int mic_firsttime_flag = 1;
     // uint64_t micfisttime = 0;
     // uint64_t mictimenow = 0;
@@ -1201,13 +1203,16 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     int64_t diffTime = 0;
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
         
+        lastsize = lastestsize;
         curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
         curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
         res = curl_easy_perform(curl);
-        printf("The value i of microphone is %s",micreadBuffer.c_str());
-        micreadBuffer = '';
+        auto lastestsize = sizeof(micreadBuffer);
+        auto diffsize = lastestsize - lastsize;
+        diffBuffer = micreadBuffer.substr(lastsize,diffsize);
+        printf("The value i of microphone is %s",diffBuffer.c_str());
         for (int i = 0; i < 5; ++i)
         {
             uint64_t time = GetCurrentTimeNanos();
@@ -1259,6 +1264,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
 size_t SinkPlayer::WriteCallback(void *contents, size_t size, size_t nmemb, void *userp){
     ((std::string*)userp)->append((char*)contents, size * nmemb);
+    // ((std::string*)userp) = append((char*)contents, size * nmemb);
     return size * nmemb;
 }
 
