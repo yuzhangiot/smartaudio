@@ -21,6 +21,8 @@ env['_ALLJOYN_AUDIO_'] = True
 # Make Audio service library and header file paths available to the global environment
 env.Append(CPPPATH = '$DISTDIR/audio/inc')
 env.Append(LIBPATH = '$DISTDIR/audio/lib')
+env.Append(LIBPATH = '$DISTDIR/usr/lib')
+env.Append(LIBPATH = '$DISTDIR/usr/local/lib')
 
 if not env.has_key('_ALLJOYN_ABOUT_') and os.path.exists('../about/SConscript'):
     env.SConscript('../about/SConscript')
