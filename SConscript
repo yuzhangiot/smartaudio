@@ -35,9 +35,9 @@ audio_env = env.Clone()
 if not audio_env.has_key('_ALLJOYNCORE_'):
     audio_env.Append(LIBS = [ 'alljoyn' ])
     if audio_env['OS'] == 'linux':
-        audio_env.AppendUnique(LIBS = [ 'asound' ])
+        audio_env.AppendUnique(LIBS = [ 'asound' , 'curl'])
     if audio_env['OS'] == 'openwrt':
-        audio_env.AppendUnique(LIBS = [ 'stdc++', 'pthread' ])
+        audio_env.AppendUnique(LIBS = [ 'stdc++', 'pthread' ,'curl'])
 
 vars = Variables()
 vars.Add(PathVariable('ALAC_BASE', 'Base directory of ALAC', os.environ.get('ALAC_BASE')))
