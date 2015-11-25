@@ -1270,7 +1270,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
         // char setvol[300]="setvol.sh ";
         // strcat(setvol,"180");
-        string setvol = "setvol.sh";
+        string setvol = "amixer cset numid=1 ";
         string myvol = "180";
         string finalcommand = setvol + myvol;
             
