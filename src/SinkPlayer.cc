@@ -1205,13 +1205,16 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
         
         lastsize = lastestsize;
+        printf("last size is%u\n", lastsize);
         curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
         curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
         res = curl_easy_perform(curl);
         lastestsize = sizeof(micreadBuffer);
+        printf("lastest size is%u\n", lastestsize);
         auto diffsize = lastestsize - lastsize;
+        printf("diff size is%u\n", diffsize);
         diffBuffer = micreadBuffer.substr(lastsize,diffsize);
         printf("The value i of microphone is %s",diffBuffer.c_str());
         for (int i = 0; i < 5; ++i)
