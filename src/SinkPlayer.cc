@@ -33,6 +33,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
@@ -1220,8 +1221,10 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             diffBuffer = micreadBuffer.substr(lastsize,diffsize);
             printf("The value of diffBuffer is %s",diffBuffer.c_str());
         }
-        printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
+        // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
+
         
+
         for (int i = 0; i < 5; ++i)
         {
             uint64_t time = GetCurrentTimeNanos();
@@ -1264,6 +1267,15 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         }
 
         SleepNanos(5000000000);
+
+        // char setvol[300]="setvol.sh ";
+        // strcat(setvol,"180");
+        string setvol = "setvol.sh";
+        string myvol = "180";
+        string finalcommand = setvol + myvol;
+            
+        system(finalcommand.c_str());
+        printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
     }
 
     curl_easy_cleanup(curl);
