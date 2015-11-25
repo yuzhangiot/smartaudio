@@ -212,6 +212,9 @@ class SinkPlayer : public ajn::MessageReceiver {
 
 
     bool addoffset(const char* name, int32_t offset);
+
+    static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
+
     /**
      * Opens the stream to the sink.
      *
