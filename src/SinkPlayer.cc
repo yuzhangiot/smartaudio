@@ -1250,6 +1250,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
         SleepNanos(5000000000);
     }
+
+    curl_easy_cleanup(curl);
     
     return 0;
 }
