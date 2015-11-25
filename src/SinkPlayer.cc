@@ -1185,10 +1185,10 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     /* define the variables for HTTP GET from cloud */
     CURL *curl; //curl instance
     CURLcode res; //return result-> false or success
-    std::string micreadBuffer; //return value
-    int mic_firsttime_flag = 1;
-    uint64_t micfisttime = 0;
-    uint64_t mictimenow = 0;
+   
+    // int mic_firsttime_flag = 1;
+    // uint64_t micfisttime = 0;
+    // uint64_t mictimenow = 0;
     curl = curl_easy_init();
     
     int64_t sumtime = 0;
@@ -1199,6 +1199,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     //set time
     int64_t diffTime = 0;
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+        std::string micreadBuffer; //return value
         curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
         curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -1228,7 +1229,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
             SleepNanos(1000000000);
         }
-        // printf("The transfer time is %lld ms\n", diffTime/1000000);
+        printf("The transfer time is %lld ms\n", diffTime/1000000);
         
         // sumtime = (rand()%(addtime_max - addtime_min + 1)) + addtime_min;
         // float sumtime_f = sumtime/1000000;
