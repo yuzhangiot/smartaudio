@@ -1248,11 +1248,36 @@ ThreadReturn SinkPlayer::EmitAudioThread(void* arg) {
     uint32_t bytesPerSecond = sp->mDataSource->GetSampleRate() * sp->mDataSource->GetBytesPerFrame();
     uint8_t* readBuffer = (uint8_t*)calloc(inputPacketBytes, 1);
     uint32_t bytesEmitted = 0;
+    /* define the variables for HTTP GET from cloud */
+    CURL *curl; //curl instance
+    CURLcode res; //return result-> false or success
+    std::string readBuffer; //return value
+    int mic_firsttime_flag = 1;
+    uint64_t micfisttime = 0;
+    uint64_t mictimenow = 0;
+
+    curl = curl_easy_init();
+
+    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
+    curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
     printf("the bytes per second is %d\n", bytesPerSecond);
     while (!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && (bytesEmitted + inputPacketBytes) <= si->fifoSize) {
         if (sp->mDataSource->IsDataReady()) {
             // int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - (int32_t)(si->offsettime * bytesPerSecond / 1000000), inputPacketBytes);
+            if (mic_firsttime_flag == 1){       
+                micfisttime = GetCurrentTimeNanos();
+                mic_firsttime_flag = 0;
+
+                res = curl_easy_perform(curl);
+                printf("The value i of microphone is %s",readBuffer.c_str());
+            }
+            mictimenow = GetCurrentTimeNanos();
+            if ((mictimenow - micfisttime) > 5000000){ //5ms
+                mic_firsttime_flag = 1;
+            }
             int32_t numBytes = sp->mDataSource->ReadData(readBuffer, sp->mDataSource->GetInputSize() - si->inputDataBytesRemaining - si->offsettime, inputPacketBytes);
             if (numBytes == 0) {            //EOF
                 si->inputDataBytesRemaining = 0;
