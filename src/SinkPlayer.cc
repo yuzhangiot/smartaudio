@@ -1218,8 +1218,9 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             auto diffsize = lastestsize - lastsize;
             printf("diff size is%u\n", diffsize);
             diffBuffer = micreadBuffer.substr(lastsize,diffsize);
-            printf("The value i of microphone is %s",diffBuffer.c_str());
+            printf("The value of diffBuffer is %s",diffBuffer.c_str());
         }
+        printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
         
         for (int i = 0; i < 5; ++i)
         {
