@@ -1213,10 +1213,14 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         res = curl_easy_perform(curl);
         lastestsize = sizeof(micreadBuffer);
         printf("lastest size is%u\n", lastestsize);
-        auto diffsize = lastestsize - lastsize;
-        printf("diff size is%u\n", diffsize);
-        diffBuffer = micreadBuffer.substr(lastsize,diffsize);
-        printf("The value i of microphone is %s",diffBuffer.c_str());
+        if (lastestsize > lastsize)
+        {
+            auto diffsize = lastestsize - lastsize;
+            printf("diff size is%u\n", diffsize);
+            diffBuffer = micreadBuffer.substr(lastsize,diffsize);
+            printf("The value i of microphone is %s",diffBuffer.c_str());
+        }
+        
         for (int i = 0; i < 5; ++i)
         {
             uint64_t time = GetCurrentTimeNanos();
