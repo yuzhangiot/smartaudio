@@ -1211,7 +1211,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
         res = curl_easy_perform(curl);
-        lastestsize = sizeof(micreadBuffer);
+        lastestsize = micreadBuffer.size();
         printf("lastest size is%u\n", lastestsize);
         if (lastestsize > lastsize)
         {
