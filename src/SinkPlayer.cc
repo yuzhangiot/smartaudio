@@ -1197,10 +1197,6 @@ void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
         for (auto j = min_offset; j < max_offset; j += offsetStep)
         {
             myoffset = j;
-            mSinksMutex->Lock();
-            si->offsettime = myoffset;
-            mSinksMutex->Unlock();
-            printf("\nThe offset has been adjusted to%d\n", myoffset);
 
             GeneRic gr;
             gr.volume = myvolume;
@@ -1248,9 +1244,9 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
 
         /* change offset */
-        mSinksMutex->Lock();
+        sp->mSinksMutex->Lock();
         si->offsettime = gr->offset;
-        mSinksMutex->Unlock();
+        sp->mSinksMutex->Unlock();
         printf("\nThe offset has been adjusted to%d\n", gr->offset);
         
         lastsize = lastestsize;
