@@ -1232,7 +1232,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     size_t lastestsize = 0;
     curl = curl_easy_init();
 
-    StartExhaustion(si, sp);
+    sp->StartExhaustion(si, sp);
     auto gr = sp->mGenerics.begin();
 
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && gr != sp->mGenerics.end()){
