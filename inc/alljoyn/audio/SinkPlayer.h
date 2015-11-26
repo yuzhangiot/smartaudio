@@ -235,9 +235,9 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     void GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, std::string &diffBuffer);
 
-    bool CompareGene (const GeneRic& first, const GeneRic& second);
+    bool CompareGene(const GeneRic& first, const GeneRic& second);
 
-    void GenerateNewGene();
+    void GenerateNewGene(SinkInfo* si, SinkPlayer* sp);
 
     /**
      * Opens the stream to the sink.
