@@ -27,9 +27,7 @@
 #include <algorithm>
 #include <inttypes.h>
 
-#include <curl/curl.h>
-#include <curl/easy.h>
-#include <curl/curlbuild.h>
+
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -1201,9 +1199,8 @@ void SinkPlayer::ChangeVolume(int32_t myVolume){
     printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
 }
 
-void SinkPlayer::GetNoise(size_t &lastsize, size_t &lastestsize, size_t &diffBuffer){
+void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, string &diffBuffer){
     /* define the variables for HTTP GET from cloud */
-    CURL *curl; //curl instance
     // CURLcode res; //return result-> false or success
     string micreadBuffer; //return value
 
@@ -1285,7 +1282,7 @@ void SinkPlayer::StartGeneric(SinkInfo* si, SinkPlayer* sp){
     }
 }
 
-void SinkPlayer::GenerateNewGene(){
+void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     std::list<GeneRic> newGenerics;
     int32_t min_offset = -1000;
     int32_t max_offset = 1000;
@@ -1314,7 +1311,7 @@ void SinkPlayer::GenerateNewGene(){
     fourthdgr->offset = myoffset;
     newGenerics.push_back(*fourthdgr); //4 variation 2
     auto fifthdgr = sp->mGenerics.begin() + 4;
-    myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+    auto myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
     fifthdgr->volume = myvolume;
     newGenerics.push_back(*fifthdgr); //5 variation 3
     auto sixthdgr = sp->mGenerics.begin() + 5;
@@ -1348,6 +1345,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     size_t lastsize = 0;
     size_t lastestsize = 0;
 
+    CURL *curl; //curl instance
+
     // SinkPlayer 
     //set time
     int64_t sumtime = 0;
@@ -1373,7 +1372,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             SleepNanos(6000000000); //6s
             /* get noise */
             string diffBuffer;
-            sp->GetNoise(lastsize,lastestsize,diffBuffer);
+            sp->GetNoise(curl, lastsize,lastestsize,diffBuffer);
             gr->result = std::stoi(diffBuffer);
             // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
@@ -1402,7 +1401,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
                 break;
             }
-            sp->GenerateNewGene();
+            sp->GenerateNewGene(si,sp);
             ++initCount;
             gr = sp->mGenerics.begin();
         }

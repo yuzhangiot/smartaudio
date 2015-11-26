@@ -32,6 +32,10 @@
 #include <map>
 #include <set>
 
+#include <curl/curl.h>
+#include <curl/easy.h>
+#include <curl/curlbuild.h>
+
 namespace qcc {
 class Mutex;
 class Thread;
@@ -222,9 +226,9 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     void ChangeVolume(int32_t myVolume);
 
-    void GetNoise(size_t &lastsize, size_t &lastestsize, size_t &diffBuffer);
+    void GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, string &diffBuffer);
 
-    bool compare_nocase (const GeneRic& first, const GeneRic& second);
+    bool CompareGene (const GeneRic& first, const GeneRic& second);
 
     void GenerateNewGene();
 
