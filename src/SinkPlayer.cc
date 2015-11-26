@@ -1240,7 +1240,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         string setvol = "amixer cset numid=1 ";
         /*convert int to string*/
         char temp[10];
-        sprintf(temp, "%d", gr.volume);
+        sprintf(temp, "%d", gr->volume);
         string myvol(temp);
         string finalcommand = setvol + myvol;
         /* adjust volume through cset function*/
@@ -1249,9 +1249,9 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
         /* change offset */
         mSinksMutex->Lock();
-        si->offsettime = gr.offset;
+        si->offsettime = gr->offset;
         mSinksMutex->Unlock();
-        printf("\nThe offset has been adjusted to%d\n", gr.offset);
+        printf("\nThe offset has been adjusted to%d\n", gr->offset);
         
         lastsize = lastestsize;
         printf("last size is%u\n", lastsize);
@@ -1270,7 +1270,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             diffBuffer = micreadBuffer.substr(lastsize,diffsize);
             printf("The value of diffBuffer is %s",diffBuffer.c_str());
         }
-        gr.result = std::stoi(diffBuffer);
+        gr->result = std::stoi(diffBuffer);
         // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
         

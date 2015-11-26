@@ -216,7 +216,7 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
-    void StartExhaustion(SinkInfo* si);
+    void StartExhaustion(SinkInfo* si, SinkPlayer* sp);
 
     /**
      * Opens the stream to the sink.
