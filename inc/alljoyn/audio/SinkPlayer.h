@@ -220,9 +220,9 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     void StartGeneric(SinkInfo* si, SinkPlayer* sp);
 
-    void SinkPlayer::ChangeVolume(int32_t myVolume);
+    void ChangeVolume(int32_t myVolume);
 
-    string GetNoise(size_t &lastsize, size_t &lastestsize);
+    void GetNoise(size_t &lastsize, size_t &lastestsize, size_t &diffBuffer);
 
     bool compare_nocase (const GeneRic& first, const GeneRic& second);
 
