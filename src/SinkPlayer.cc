@@ -1181,7 +1181,7 @@ size_t SinkPlayer::GetSinkCount() {
     return count;
 }
 
-void SinkPlayer::StartExhaustion(SinkInfo* si){
+void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
     /* init range of adjustment*/
     int32_t min_offset = -1000;
     int32_t max_offset = 1000;
@@ -1232,7 +1232,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     size_t lastestsize = 0;
     curl = curl_easy_init();
 
-    StartExhaustion();
+    StartExhaustion(si, sp);
     auto gr = sp->mGenerics.begin();
 
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && gr != sp->mGenerics.end()){
