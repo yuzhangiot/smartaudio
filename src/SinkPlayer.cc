@@ -35,6 +35,7 @@
 #include <fstream>
 #include <string>
 #include <unistd.h>
+#include <cctype>
 
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
@@ -1187,6 +1188,59 @@ size_t SinkPlayer::GetSinkCount() {
     return count;
 }
 
+void SinkPlayer::ChangeVolume(int32_t myVolume){
+    /* change colume */
+    string setvol = "amixer cset numid=1 ";
+    /*convert int to string*/
+    char temp[10];
+    sprintf(temp, "%d", myVolume);
+    string myvol(temp);
+    string finalcommand = setvol + myvol;
+    /* adjust volume through cset function*/
+    system(finalcommand.c_str());
+    printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
+}
+
+string SinkPlayer::GetNoise(size_t &lastsize, size_t &lastestsize){
+    /* define the variables for HTTP GET from cloud */
+    CURL *curl; //curl instance
+    // CURLcode res; //return result-> false or success
+    string micreadBuffer; //return value
+    string diffBuffer;
+
+    
+    curl = curl_easy_init();
+
+    lastsize = lastestsize;
+    // printf("last size is%u\n", lastsize);
+    curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
+    curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
+    curl_easy_perform(curl);
+    lastestsize = micreadBuffer.size();
+    // printf("lastest size is%u\n", lastestsize);
+
+    if (lastestsize > lastsize)
+    {
+        auto diffsize = lastestsize - lastsize;
+        // printf("diff size is%u\n", diffsize);
+        diffBuffer = micreadBuffer.substr(lastsize,diffsize);
+        printf("The value of diffBuffer is %s",diffBuffer.c_str());
+    }
+    return diffBuffer;
+}
+
+bool SinkPlayer::CompareGene (const GeneRic& first, const GeneRic& second)
+{
+    if (first.result < second.result){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+
 void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
     /* init range of adjustment*/
     int32_t min_offset = -1000;
@@ -1212,6 +1266,76 @@ void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
     }
 }
 
+void SinkPlayer::StartGeneric(SinkInfo* si, SinkPlayer* sp){
+    /* init range of adjustment*/
+    int32_t min_offset = -1000;
+    int32_t max_offset = 1000;
+    int32_t min_volume = 170;
+    int32_t max_volume = 200;
+    int32_t myoffset = 0, myvolume = 0;
+
+
+    for (int i = 0; i < 9; ++i)
+    {
+        myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+        myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+
+        GeneRic gr;
+        gr.volume = myvolume;
+        gr.offset = myoffset;
+        sp->mGenerics.push_back(gr);
+    }
+}
+
+void SinkPlayer::GenerateNewGene(){
+    std::list<GeneRic> newGenerics;
+    int32_t min_offset = -1000;
+    int32_t max_offset = 1000;
+    int32_t min_volume = 170;
+    int32_t max_volume = 200;
+    int32_t offsetStep = 40; //min is 2
+    int32_t volumeStep = 10; //min is 1
+
+    auto newgr = sp->mGenerics.begin();
+    auto firstgr = sp->mGenerics.begin();
+    newGenerics.push_back(*firstgr); //0 the best of init group
+    /* cross first and second */
+    auto secondgr = sp->mGenerics.begin() + 1;
+    newgr->volume = secondgr->volume;
+    newGenerics.push_back(*newgr); //1 cross 1
+    newgr->volume = firstgr->volume;
+    newgr->offset = secondgr->offset;
+    newGenerics.push_back(*newgr); //2 cross 2
+    /* Variation 4 genes */
+    auto thirddgr = sp->mGenerics.begin() + 2;
+    auto myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+    thirddgr->offset = myoffset;
+    newGenerics.push_back(*thirddgr); //3 variation 1
+    auto fourthdgr = sp->mGenerics.begin() + 3;
+    myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+    fourthdgr->offset = myoffset;
+    newGenerics.push_back(*fourthdgr); //4 variation 2
+    auto fifthdgr = sp->mGenerics.begin() + 4;
+    myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+    fifthdgr->volume = myvolume;
+    newGenerics.push_back(*fifthdgr); //5 variation 3
+    auto sixthdgr = sp->mGenerics.begin() + 5;
+    myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+    sixthdgr->volume = myvolume;
+    newGenerics.push_back(*sixthdgr); //6 variation 4
+    /* import 3 new genes */
+    for (int j = 0; j < 2; ++j)
+    {
+        myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+        myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+        newgr->volume = myvolume;
+        newgr->offset = myoffset;
+        newGenerics.push_back(*newgr); //17 18 19 new 1 2 3
+    }
+    /* copy the entile list back to mGenerics*/
+    sp->mGenerics = newGenerics;
+}
+
 ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     
     EmitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
@@ -1221,68 +1345,69 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     QStatus status = ER_OK;
 
     ofstream myfile; //write data to myfile
-    myfile.open ("exhaustion.txt");
+    // myfile.open ("exhaustion.txt"); //1.exhaustion
+    myfile.open ("generic.txt"); //2.generic
+    size_t lastsize = 0;
+    size_t lastestsize = 0;
 
     // SinkPlayer 
     //set time
     int64_t sumtime = 0;
     int64_t diffTime = 0;
 
-    /* define the variables for HTTP GET from cloud */
-    CURL *curl; //curl instance
-    CURLcode res; //return result-> false or success
-    string micreadBuffer; //return value
-    string diffBuffer;
-    size_t lastsize = 0;
-    size_t lastestsize = 0;
-    curl = curl_easy_init();
-
-    sp->StartExhaustion(si, sp);
+    // sp->StartExhaustion(si, sp); //1.exhaustion
+    sp->StartGeneric(si,sp); //2.generic
     auto gr = sp->mGenerics.begin();
+    int initCount = 1;
 
-    while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && gr != sp->mGenerics.end()){
-        /* change colume */
-        string setvol = "amixer cset numid=1 ";
-        /*convert int to string*/
-        char temp[10];
-        sprintf(temp, "%d", gr->volume);
-        string myvol(temp);
-        string finalcommand = setvol + myvol;
-        /* adjust volume through cset function*/
-        system(finalcommand.c_str());
-        printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
-
-        /* change offset */
-        sp->mSinksMutex->Lock();
-        si->offsettime = gr->offset;
-        sp->mSinksMutex->Unlock();
-        printf("\nThe offset has been adjusted to%d\n", gr->offset);
-        
-        lastsize = lastestsize;
-        printf("last size is%u\n", lastsize);
-        curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.10.88:3000/channels/1/fields/1/last?key=5PTJZFXQ6SWD32PR");
-        curl_easy_setopt(curl, CURLOPT_HTTPGET,1);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &micreadBuffer);
-        res = curl_easy_perform(curl);
-        lastestsize = micreadBuffer.size();
-        printf("lastest size is%u\n", lastestsize);
-
-        if (lastestsize > lastsize)
+    while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+        /* init the generic group */
+        if (initCount % 10 != 0)
         {
-            auto diffsize = lastestsize - lastsize;
-            printf("diff size is%u\n", diffsize);
-            diffBuffer = micreadBuffer.substr(lastsize,diffsize);
-            printf("The value of diffBuffer is %s",diffBuffer.c_str());
+            sp->ChangeVolume(gr->volume); // change volume
+
+            /* change offset */
+            sp->mSinksMutex->Lock();
+            si->offsettime = gr->offset;
+            sp->mSinksMutex->Unlock();
+            printf("\nThe offset has been adjusted to%d\n", gr->offset);
+            
+            SleepNanos(6000000000); //6s
+            /* get noise */
+            string diffBuffer = sp->GetNoise(lastsize,lastestsize);
+            gr->result = std::stoi(diffBuffer);
+            // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
+
+            /* write data to file*/
+            myfile << gr->volume << "\t" << gr->offset << "\t" << gr->result << "\n";
+            
+            gr++;
+            ++initCount;
         }
-        gr->result = std::stoi(diffBuffer);
-        // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
+        if (initCount % 10 == 0)
+        {
+            /* sort the init result and generate now group */
+            sp->mGenerics.sort(sp->CompareGene);
+            auto firstgr = sp->mGenerics.begin();
+            printf("The best result of init group is %d\n", firstgr->result);
+            if (firstgr->result < 10 || (initCount/10) > 5)
+            {
+                /* if the object has been reached, set the best value and stop generic */
+                sp->ChangeVolume(firstgr->volume); // change volume
+                printf("The best volume is %d\n", firstgr->volume);
+                /* change offset */
+                sp->mSinksMutex->Lock();
+                si->offsettime = gr->offset;
+                sp->mSinksMutex->Unlock();
+                printf("\nThe best offset is %d\n", firstgr->offset);
 
-        /* write data to file*/
-        myfile << gr->volume << "\t" << gr->offset << "\t" << gr->result << "\n";
+                break;
+            }
+            sp->GenerateNewGene();
+            ++initCount;
+            gr = sp->mGenerics.begin();
+        }
         
-        gr++;
-
         for (int i = 0; i < 5; ++i)
         {
             uint64_t time = GetCurrentTimeNanos();
@@ -1324,7 +1449,6 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             return false;
         }
 
-        SleepNanos(5000000000);
 
         // char setvol[300]="setvol.sh ";
         // strcat(setvol,"180");

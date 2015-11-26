@@ -138,6 +138,7 @@ char* get_line(char* str, size_t num, FILE* fp)
 
 /* Main entry point */
 int main(int argc, char** argv, char** envArg) {
+    srand(time(0));
     if (argc < 2 || argc > 4) {
         printf("Usage: %s file.wav antifile.wav [raw|alac]\n", argv[0]);
         return 1;

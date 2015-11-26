@@ -218,6 +218,16 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     void StartExhaustion(SinkInfo* si, SinkPlayer* sp);
 
+    void StartGeneric(SinkInfo* si, SinkPlayer* sp);
+
+    void SinkPlayer::ChangeVolume(int32_t myVolume);
+
+    string GetNoise(size_t &lastsize, size_t &lastestsize);
+
+    bool compare_nocase (const GeneRic& first, const GeneRic& second);
+
+    void GenerateNewGene();
+
     /**
      * Opens the stream to the sink.
      *
