@@ -28,13 +28,6 @@
 #include <inttypes.h>
 
 
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <unistd.h>
-#include <cctype>
-
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
 #ifndef MIN
