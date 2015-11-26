@@ -215,6 +215,8 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
+    void StartExhaustion(SinkInfo* si);
+
     /**
      * Opens the stream to the sink.
      *
@@ -373,6 +375,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     ajn::MsgArg mFormatArg;
     qcc::Mutex* mSinksMutex;
     std::list<SinkInfo> mSinks;
+    std::list<GeneRic> mGenerics;
     qcc::Mutex* mAddThreadsMutex;
     ThreadMap mAddThreads;
     qcc::Mutex* mRemoveThreadsMutex;

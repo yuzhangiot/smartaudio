@@ -80,6 +80,12 @@ struct FindSink {
     const char* name;
 };
 
+struct GeneRic{
+    int32_t offset;
+    int32_t volume;
+    int32_t result;
+};
+
 class SignallingObject : public BusObject {
   private:
     const InterfaceDescription::Member* mAudioDataMember;
@@ -1175,6 +1181,35 @@ size_t SinkPlayer::GetSinkCount() {
     return count;
 }
 
+void SinkPlayer::StartExhaustion(SinkInfo* si){
+    /* init range of adjustment*/
+    int32_t min_offset = -1000;
+    int32_t max_offset = 1000;
+    int32_t min_volume = 170;
+    int32_t max_volume = 200;
+    int32_t offsetStep = 4; //min is 2
+    int32_t volumeStep = 10; //min is 1
+    int32_t myoffset = 0, myvolume = 0;
+
+    for (auto i = min_volume; i < max_volume; i += volumeStep)
+    {
+        myvolume = i;
+        for (auto j = min_offset; j < max_offset; j += offsetStep)
+        {
+            myoffset = j;
+            mSinksMutex->Lock();
+            si->offsettime = myoffset;
+            mSinksMutex->Unlock();
+            printf("\nThe offset has been adjusted to%d\n", myoffset);
+
+            GeneRic gr;
+            gr.volume = myvolume;
+            gr.offset = myoffset;
+            sp->mGenerics.push_back(gr);
+        }
+    }
+}
+
 ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     
     EmitAudioInfo* eai = reinterpret_cast<EmitAudioInfo*>(arg);
@@ -1183,27 +1218,40 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     SinkInfo* si = eai->si;
     QStatus status = ER_OK;
 
+    // SinkPlayer 
+    //set time
+    int64_t sumtime = 0;
+    int64_t diffTime = 0;
+
     /* define the variables for HTTP GET from cloud */
     CURL *curl; //curl instance
     CURLcode res; //return result-> false or success
     string micreadBuffer; //return value
     string diffBuffer;
-   
-   size_t lastsize = 0;
-   size_t lastestsize = 0;
-    // int mic_firsttime_flag = 1;
-    // uint64_t micfisttime = 0;
-    // uint64_t mictimenow = 0;
+    size_t lastsize = 0;
+    size_t lastestsize = 0;
     curl = curl_easy_init();
-    
-    int64_t sumtime = 0;
-    // int64_t addtime_min = -1000000000;
-    // int64_t addtime_max = 1000000000;
 
-    // SinkPlayer 
-    //set time
-    int64_t diffTime = 0;
-    while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+    StartExhaustion();
+    auto gr = sp->mGenerics.begin();
+
+    while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0 && gr != sp->mGenerics.end()){
+        /* change colume */
+        string setvol = "amixer cset numid=1 ";
+        /*convert int to string*/
+        char temp[10];
+        sprintf(temp, "%d", gr.volume);
+        string myvol(temp);
+        string finalcommand = setvol + myvol;
+        /* adjust volume through cset function*/
+        system(finalcommand.c_str());
+        printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
+
+        /* change offset */
+        mSinksMutex->Lock();
+        si->offsettime = gr.offset;
+        mSinksMutex->Unlock();
+        printf("\nThe offset has been adjusted to%d\n", gr.offset);
         
         lastsize = lastestsize;
         printf("last size is%u\n", lastsize);
@@ -1214,6 +1262,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         res = curl_easy_perform(curl);
         lastestsize = micreadBuffer.size();
         printf("lastest size is%u\n", lastestsize);
+
         if (lastestsize > lastsize)
         {
             auto diffsize = lastestsize - lastsize;
@@ -1221,9 +1270,11 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             diffBuffer = micreadBuffer.substr(lastsize,diffsize);
             printf("The value of diffBuffer is %s",diffBuffer.c_str());
         }
+        gr.result = std::stoi(diffBuffer);
         // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
         
+        gr++;
 
         for (int i = 0; i < 5; ++i)
         {
@@ -1270,12 +1321,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
         // char setvol[300]="setvol.sh ";
         // strcat(setvol,"180");
-        string setvol = "amixer cset numid=1 ";
-        string myvol = "180";
-        string finalcommand = setvol + myvol;
-            
-        system(finalcommand.c_str());
-        printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
+        
     }
 
     curl_easy_cleanup(curl);
