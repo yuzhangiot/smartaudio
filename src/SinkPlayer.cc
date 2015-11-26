@@ -1188,7 +1188,7 @@ void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
     int32_t max_offset = 1000;
     int32_t min_volume = 170;
     int32_t max_volume = 200;
-    int32_t offsetStep = 4; //min is 2
+    int32_t offsetStep = 40; //min is 2
     int32_t volumeStep = 10; //min is 1
     int32_t myoffset = 0, myvolume = 0;
 
