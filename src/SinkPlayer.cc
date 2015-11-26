@@ -687,10 +687,12 @@ bool SinkPlayer::OpenSink(const char* name) {
         }
     }
     si->offsettime = 0; /* init the offset time */
+    int fsiFlag = 0;
     if (!fsi) {
         /* Start from beginning if we're the first sink */
         si->inputDataBytesRemaining = mDataSource->GetInputSize();
         si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
+        fsiFlag = 1;
         // si->timestamp = GetCurrentTimeNanos();
     } else {
         /* Start with values from first sink, note these are in the future due to semi-full fifo */
@@ -726,11 +728,14 @@ bool SinkPlayer::OpenSink(const char* name) {
 
         mEmitThreadsMutex->Lock();
         Thread* t = new Thread("EmitAudio", &EmitAudioThread);
-        Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
         mEmitThreads[si->serviceName] = t;
-        mSyntThreads[si->serviceName] = syn_t;
         t->Start(eai);
-        syn_t->Start(eai);
+        if (fsiFlag == 1)
+        {
+            Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
+            mSyntThreads[si->serviceName] = syn_t;
+            syn_t->Start(eai);
+        }
         mEmitThreadsMutex->Unlock();
     }
 
