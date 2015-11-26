@@ -1249,7 +1249,7 @@ void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
             GeneRic gr;
             gr.volume = myvolume;
             gr.offset = myoffset;
-            sp->mGenerics.push_back(gr);
+            (sp->mGenerics).push_back(gr);
         }
     }
 }
@@ -1271,7 +1271,7 @@ void SinkPlayer::StartGeneric(SinkInfo* si, SinkPlayer* sp){
         GeneRic gr;
         gr.volume = myvolume;
         gr.offset = myoffset;
-        sp->mGenerics.push_back(gr);
+        (sp->mGenerics).push_back(gr);
     }
 }
 
@@ -1284,30 +1284,31 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     int32_t offsetStep = 40; //min is 2
     int32_t volumeStep = 10; //min is 1
 
-    auto newgr = sp->mGenerics.begin();
-    auto firstgr = sp->mGenerics.begin();
+    auto oldGenerics = sp->mGenerics;
+    auto newgr = oldGenerics.begin();
+    auto firstgr = oldGenerics.begin();
     newGenerics.push_back(*firstgr); //0 the best of init group
     /* cross first and second */
-    auto secondgr = sp->mGenerics.begin() + 1;
+    auto secondgr = oldGenerics.begin() + 1;
     newgr->volume = secondgr->volume;
     newGenerics.push_back(*newgr); //1 cross 1
     newgr->volume = firstgr->volume;
     newgr->offset = secondgr->offset;
     newGenerics.push_back(*newgr); //2 cross 2
     /* Variation 4 genes */
-    auto thirddgr = sp->mGenerics.begin() + 2;
+    auto thirddgr = oldGenerics.begin() + 2;
     auto myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
     thirddgr->offset = myoffset;
     newGenerics.push_back(*thirddgr); //3 variation 1
-    auto fourthdgr = sp->mGenerics.begin() + 3;
+    auto fourthdgr = oldGenerics.begin() + 3;
     myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
     fourthdgr->offset = myoffset;
     newGenerics.push_back(*fourthdgr); //4 variation 2
-    auto fifthdgr = sp->mGenerics.begin() + 4;
+    auto fifthdgr = oldGenerics.begin() + 4;
     auto myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
     fifthdgr->volume = myvolume;
     newGenerics.push_back(*fifthdgr); //5 variation 3
-    auto sixthdgr = sp->mGenerics.begin() + 5;
+    auto sixthdgr = oldGenerics.begin() + 5;
     myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
     sixthdgr->volume = myvolume;
     newGenerics.push_back(*sixthdgr); //6 variation 4
@@ -1347,7 +1348,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
     // sp->StartExhaustion(si, sp); //1.exhaustion
     sp->StartGeneric(si,sp); //2.generic
-    auto gr = sp->mGenerics.begin();
+    // auto tempgeneric = sp->mGenerics;
+    auto gr = (sp->mGenerics).begin();
     int initCount = 1;
 
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
@@ -1378,8 +1380,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         if (initCount % 10 == 0)
         {
             /* sort the init result and generate now group */
-            sp->mGenerics.sort(sp->CompareGene);
-            auto firstgr = sp->mGenerics.begin();
+            (sp->mGenerics).sort(sp->CompareGene);
+            auto firstgr = (sp->mGenerics).begin();
             printf("The best result of init group is %d\n", firstgr->result);
             if (firstgr->result < 10 || (initCount/10) > 5)
             {
@@ -1396,7 +1398,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             }
             sp->GenerateNewGene(si,sp);
             ++initCount;
-            gr = sp->mGenerics.begin();
+            gr = (sp->mGenerics).begin();
         }
         
         for (int i = 0; i < 5; ++i)
