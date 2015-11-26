@@ -41,6 +41,7 @@ namespace ajn {
 namespace services {
 
 struct SinkInfo;
+struct GeneRic;
 class SinkSessionListener;
 class SignallingObject;
 
