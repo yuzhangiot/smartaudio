@@ -32,6 +32,7 @@
 #include <curl/curlbuild.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <unistd.h>
 
@@ -1269,6 +1270,10 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         gr->result = std::stoi(diffBuffer);
         // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
+        /* write data to file*/
+        ofstream myfile;
+        myfile.open ("exhaustion.txt");
+        myfile << gr->volume << "\t" << gr->offset << "\t" << gr->value << "\n";
         
         gr++;
 
@@ -1321,6 +1326,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     }
 
     curl_easy_cleanup(curl);
+    myfile.close();
     
     return 0;
 }
