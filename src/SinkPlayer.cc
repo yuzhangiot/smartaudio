@@ -1216,6 +1216,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     QStatus status = ER_OK;
 
     ofstream myfile; //write data to myfile
+    myfile.open ("exhaustion.txt");
 
     // SinkPlayer 
     //set time
@@ -1273,7 +1274,6 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
         /* write data to file*/
-        myfile.open ("exhaustion.txt");
         myfile << gr->volume << "\t" << gr->offset << "\t" << gr->result << "\n";
         
         gr++;
