@@ -397,7 +397,7 @@ class SinkPlayer : public ajn::MessageReceiver {
     ajn::MsgArg mFormatArg;
     qcc::Mutex* mSinksMutex;
     std::list<SinkInfo> mSinks;
-    std::list<GeneRic> mGenerics;
+    std::vector<GeneRic> mGenerics;
     qcc::Mutex* mAddThreadsMutex;
     ThreadMap mAddThreads;
     qcc::Mutex* mRemoveThreadsMutex;

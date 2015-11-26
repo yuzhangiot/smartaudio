@@ -1276,7 +1276,7 @@ void SinkPlayer::StartGeneric(SinkInfo* si, SinkPlayer* sp){
 }
 
 void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
-    std::list<GeneRic> newGenerics;
+    std::vector<GeneRic> newGenerics;
     int32_t min_offset = -1000;
     int32_t max_offset = 1000;
     int32_t min_volume = 170;
