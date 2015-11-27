@@ -42,7 +42,7 @@
 #include <string>
 #include <unistd.h>
 #include <cctype>
-#include <algorithm>    // std::sort
+
 
 namespace qcc {
 class Mutex;
@@ -236,7 +236,7 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     void GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, std::string &diffBuffer);
 
-    bool CompareGene(const GeneRic& first, const GeneRic& second);
+    bool CompareGene(GeneRic& first, GeneRic& second);
 
     void GenerateNewGene(SinkInfo* si, SinkPlayer* sp);
 
