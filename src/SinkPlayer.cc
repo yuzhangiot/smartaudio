@@ -1333,7 +1333,7 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
         myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
         newgr->volume = myvolume;
         newgr->offset = myoffset;
-        newGenerics.push_back(*newgr); //17 18 19 new 1 2 3
+        newGenerics.push_back(*newgr); //7 8 new 1 2
     }
     /* copy the entile list back to mGenerics*/
     sp->mGenerics = newGenerics;
@@ -1467,6 +1467,52 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
     curl_easy_cleanup(curl);
     myfile.close();
+
+    while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+        for (int i = 0; i < 5; ++i)
+        {
+            uint64_t time = GetCurrentTimeNanos();
+            MsgArg setTimeArgs[1];
+            setTimeArgs[0].Set("t", time);
+            Message setTimeReply(*sp->mMsgBus);
+            status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
+            uint64_t newTime = GetCurrentTimeNanos();
+            if (ER_OK == status) {
+                QCC_DbgTrace(("Port.SetTime(%" PRIu64 ") success", time));
+            } else {
+                QCC_LogError(status, ("Port.SetTime() failed"));
+                return false;
+            }
+
+            diffTime = (newTime - time) / 2;
+            if (diffTime < 10000000) { // 10ms
+                break;
+            }
+
+            SleepNanos(1000000000);
+        }
+        printf("The transfer time is %lld ms\n", diffTime/1000000);
+        
+        // sumtime = (rand()%(addtime_max - addtime_min + 1)) + addtime_min;
+        // float sumtime_f = sumtime/1000000;
+        // printf("The random adj time is %f ms\n", sumtime_f);
+
+        diffTime += sumtime;
+        //adjust time
+        MsgArg adjustTimeArgs[1];
+        adjustTimeArgs[0].Set("x", diffTime);
+        Message adjustTimeReply(*sp->mMsgBus);
+        status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
+        if (ER_OK == status) {
+            QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));
+        } else {
+            QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
+            return false;
+        }
+
+        SleepNanos(5000000000); //6s
+
+    }
     
     return 0;
 }
