@@ -1202,10 +1202,9 @@ void SinkPlayer::ChangeVolume(int32_t myVolume){
     printf("\nThe volume has been adjusted to %s\n",myvol.c_str());
 }
 
-void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, string &diffBuffer){
+void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, string &micreadBuffer,string &diffBuffer){
     /* define the variables for HTTP GET from cloud */
     // CURLcode res; //return result-> false or success
-    string micreadBuffer; //return value
 
 
     lastsize = lastestsize;
@@ -1356,6 +1355,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
 
     CURL *curl; //curl instance
     curl = curl_easy_init();
+    string diffBuffer;
+    string micreadBuffer; //return value
 
     // SinkPlayer 
     //set time
@@ -1382,8 +1383,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             
             SleepNanos(6000000000); //6s
             /* get noise */
-            string diffBuffer;
-            sp->GetNoise(curl, lastsize,lastestsize,diffBuffer);
+            sp->GetNoise(curl, lastsize,lastestsize, micreadBuffer,diffBuffer);
             // gr->result = std::stoi(diffBuffer);
             gr->result = atoi(diffBuffer.c_str());
             // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
