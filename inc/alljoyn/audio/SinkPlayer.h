@@ -234,7 +234,7 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     void ChangeVolume(int32_t myVolume);
 
-    void GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, std::string &micreadBuffer,,std::string &diffBuffer);
+    void GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, std::string &micreadBuffer,std::string &diffBuffer);
 
     void GenerateNewGene(SinkInfo* si, SinkPlayer* sp);
 
