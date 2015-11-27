@@ -84,7 +84,7 @@ struct CompareGene
 {
     bool operator()(const GeneRic& first, const GeneRic& second) const
     {
-        return first.result > second.result;
+        return first.result < second.result;
     }
 };
 
