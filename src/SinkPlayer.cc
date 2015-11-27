@@ -1219,7 +1219,7 @@ void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, str
     }
 }
 
-bool SinkPlayer::CompareGene(GeneRic& first, GeneRic& second)
+bool SinkPlayer::CompareGene(GeneRic first, GeneRic second)
 {
     if (first.result < second.result){
         return false;
