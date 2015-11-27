@@ -1265,6 +1265,10 @@ void SinkPlayer::StartGeneric(SinkInfo* si, SinkPlayer* sp){
     for (int i = 0; i < 9; ++i)
     {
         myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+        if ((myoffset % 2) != 0)
+        {
+            myoffset += 1;
+        }
         myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
 
         GeneRic gr;
@@ -1297,10 +1301,18 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     /* Variation 4 genes */
     auto thirddgr = oldGenerics.begin() + 2;
     auto myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+    if ((myoffset % 2) != 0)
+    {
+        myoffset += 1;
+    }
     thirddgr->offset = myoffset;
     newGenerics.push_back(*thirddgr); //3 variation 1
     auto fourthdgr = oldGenerics.begin() + 3;
     myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+    if ((myoffset % 2) != 0)
+    {
+        myoffset += 1;
+    }
     fourthdgr->offset = myoffset;
     newGenerics.push_back(*fourthdgr); //4 variation 2
     auto fifthdgr = oldGenerics.begin() + 4;
@@ -1315,6 +1327,10 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     for (int j = 0; j < 2; ++j)
     {
         myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+        if ((myoffset % 2) != 0)
+        {
+            myoffset += 1;
+        }
         myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
         newgr->volume = myvolume;
         newgr->offset = myoffset;
