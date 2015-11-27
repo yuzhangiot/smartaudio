@@ -1368,7 +1368,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             /* get noise */
             string diffBuffer;
             sp->GetNoise(curl, lastsize,lastestsize,diffBuffer);
-            gr->result = std::stoi(diffBuffer);
+            // gr->result = std::stoi(diffBuffer);
+            gr->result = atoi(diffBuffer.c_str());
             // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
             /* write data to file*/
