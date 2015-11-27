@@ -79,6 +79,15 @@ struct GeneRic{
     int32_t result;
 };
 
+struct CompareGene
+{
+    bool operator()(const GeneRic& first, const GeneRic& second) const
+    {
+        return first.result > second.result;
+    }
+};
+
+
 class SignallingObject : public BusObject {
   private:
     const InterfaceDescription::Member* mAudioDataMember;
@@ -1219,15 +1228,6 @@ void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, str
     }
 }
 
-bool SinkPlayer::CompareGene(GeneRic first, GeneRic second)
-{
-    if (first.result < second.result){
-        return false;
-    }
-    else{
-        return true;
-    }
-}
 
 void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
     /* init range of adjustment*/
@@ -1380,7 +1380,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         if (initCount % 10 == 0)
         {
             /* sort the init result and generate now group */
-            std::sort((sp->mGenerics).begin(), (sp->mGenerics).end(), sp->CompareGene);
+            std::sort((sp->mGenerics).begin(), (sp->mGenerics).end(), CompareGene());
             auto firstgr = (sp->mGenerics).begin();
             printf("The best result of init group is %d\n", firstgr->result);
             if (firstgr->result < 10 || (initCount/10) > 5)
