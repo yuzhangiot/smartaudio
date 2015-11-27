@@ -1380,7 +1380,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         if (initCount % 10 == 0)
         {
             /* sort the init result and generate now group */
-            (sp->mGenerics).sort(sp->CompareGene);
+            std::sort(sp->mGenerics.begin(), sp->mGenerics.end(), sp->CompareGene);
             auto firstgr = (sp->mGenerics).begin();
             printf("The best result of init group is %d\n", firstgr->result);
             if (firstgr->result < 10 || (initCount/10) > 5)

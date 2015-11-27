@@ -42,6 +42,7 @@
 #include <string>
 #include <unistd.h>
 #include <cctype>
+#include <algorithm>    // std::sort
 
 namespace qcc {
 class Mutex;
