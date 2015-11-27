@@ -1206,8 +1206,6 @@ void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, str
     // CURLcode res; //return result-> false or success
     string micreadBuffer; //return value
 
-    
-    curl = curl_easy_init();
 
     lastsize = lastestsize;
     // printf("last size is%u\n", lastsize);
@@ -1281,8 +1279,8 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     int32_t max_offset = 1000;
     int32_t min_volume = 170;
     int32_t max_volume = 200;
-    int32_t offsetStep = 40; //min is 2
-    int32_t volumeStep = 10; //min is 1
+    // int32_t offsetStep = 40; //min is 2
+    // int32_t volumeStep = 10; //min is 1
 
     auto oldGenerics = sp->mGenerics;
     auto newgr = oldGenerics.begin();
@@ -1340,6 +1338,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     size_t lastestsize = 0;
 
     CURL *curl; //curl instance
+    curl = curl_easy_init();
 
     // SinkPlayer 
     //set time
