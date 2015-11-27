@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <inttypes.h>
 #include <vector>
+#include <sstream>
 
 #define QCC_MODULE "ALLJOYN_AUDIO"
 
