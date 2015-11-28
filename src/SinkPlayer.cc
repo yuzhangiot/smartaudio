@@ -1222,7 +1222,7 @@ void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, str
         auto diffsize = lastestsize - lastsize;
         // printf("diff size is%u\n", diffsize);
         diffBuffer = micreadBuffer.substr(lastsize,diffsize);
-        printf("The value of diffBuffer is %s",diffBuffer.c_str());
+        printf("The value of diffBuffer is %s\n",diffBuffer.c_str());
     }
 }
 
@@ -1373,6 +1373,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
         /* init the generic group */
         if (initCount % 10 != 0)
         {
+            SleepNanos(1000000000); //1s
             sp->ChangeVolume(gr->volume); // change volume
 
             /* change offset */
@@ -1381,7 +1382,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             sp->mSinksMutex->Unlock();
             printf("\nThe offset has been adjusted to%d\n", gr->offset);
             
-            SleepNanos(6000000000); //6s
+            SleepNanos(10000000000); //10s
             /* get noise */
             sp->GetNoise(curl, lastsize,lastestsize, micreadBuffer,diffBuffer);
             // gr->result = std::stoi(diffBuffer);
