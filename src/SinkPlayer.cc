@@ -1817,9 +1817,9 @@ bool SinkPlayer::Play() {
                 eai->si = si;
                 eai->sp = this;
                 Thread* t = new Thread("EmitAudio", &EmitAudioThread);
-                Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
+                // Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
                 mEmitThreads[si->serviceName] = t;
-                mSyntThreads[si->serviceName] = syn_t;
+                // mSyntThreads[si->serviceName] = syn_t;
                 if (inputDataBytesRemaining == 0) {
                     // Save value from first sink
                     inputDataBytesRemaining = si->inputDataBytesRemaining;
@@ -1829,7 +1829,7 @@ bool SinkPlayer::Play() {
                 }
                 si->timestamp = timestamp;
                 t->Start(eai);
-                syn_t->Start(eai);
+                // syn_t->Start(eai);
             }
             mEmitThreadsMutex->Unlock();
         }
