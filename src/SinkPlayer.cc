@@ -228,7 +228,7 @@ class SinkSessionListener : public SessionListener {
 SinkPlayer::SinkPlayer(BusAttachment* msgBus)
     : MessageReceiver(), mSinkListenersMutex(new qcc::Mutex()), mDataSource(NULL), mDataSourceAnti(NULL),
     mSinksMutex(new qcc::Mutex()), mAddThreadsMutex(new qcc::Mutex()), mRemoveThreadsMutex(new qcc::Mutex()),
-    mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL) {
+    mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL), fsiFlag(true) {
     mMsgBus = msgBus;
     mSessionListener = new SinkSessionListener(this);
     mPreferredFormat = strdup(MIMETYPE_AUDIO_RAW);
@@ -689,12 +689,12 @@ bool SinkPlayer::OpenSink(const char* name) {
         }
     }
     si->offsettime = 0; /* init the offset time */
-    int fsiFlag = 0;
+    // int fsiFlag = 0;
     if (!fsi) {
         /* Start from beginning if we're the first sink */
         si->inputDataBytesRemaining = mDataSource->GetInputSize();
         si->timestamp = GetCurrentTimeNanos() + 100000000; /* 0.1s */
-        fsiFlag = 1;
+        // fsiFlag = 1;
         // si->timestamp = GetCurrentTimeNanos();
     } else {
         /* Start with values from first sink, note these are in the future due to semi-full fifo */
@@ -732,8 +732,9 @@ bool SinkPlayer::OpenSink(const char* name) {
         Thread* t = new Thread("EmitAudio", &EmitAudioThread);
         mEmitThreads[si->serviceName] = t;
         t->Start(eai);
-        if (fsiFlag == 1)
+        if (fsiFlag == true)
         {
+            fsiFlag = false;
             Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
             mSyntThreads[si->serviceName] = syn_t;
             syn_t->Start(eai);
@@ -1859,6 +1860,13 @@ bool SinkPlayer::Play() {
                 }
                 si->timestamp = timestamp;
                 t->Start(eai);
+                if (fsiFlag == true)
+                {
+                    fsiFlag = false;
+                    Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
+                    mSyntThreads[si->serviceName] = syn_t;
+                    syn_t->Start(eai);
+                }
                 // syn_t->Start(eai);
             }
             mEmitThreadsMutex->Unlock();

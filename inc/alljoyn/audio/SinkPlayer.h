@@ -379,6 +379,9 @@ class SinkPlayer : public ajn::MessageReceiver {
 
     static void* SinkListenerThread(void* arg);
 
+  public:
+    bool fsiFlag;
+
   private:
     typedef std::set<SinkListener*> SinkListeners;
     typedef std::map<qcc::String, qcc::Thread*> ThreadMap;
