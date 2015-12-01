@@ -1222,7 +1222,7 @@ void SinkPlayer::GetNoise(CURL *curl, size_t &lastsize, size_t &lastestsize, str
         auto diffsize = lastestsize - lastsize;
         // printf("diff size is%u\n", diffsize);
         diffBuffer = micreadBuffer.substr(lastsize,diffsize);
-        printf("The value of diffBuffer is %s\n",diffBuffer.c_str());
+        printf("\nThe value of diffBuffer is %s\n",diffBuffer.c_str());
     }
 }
 
@@ -1237,10 +1237,10 @@ void SinkPlayer::StartExhaustion(SinkInfo* si, SinkPlayer* sp){
     int32_t volumeStep = 10; //min is 1
     int32_t myoffset = 0, myvolume = 0;
 
-    for (auto i = min_volume; i < max_volume; i += volumeStep)
+    for (auto i = min_volume; i <= max_volume; i += volumeStep)
     {
         myvolume = i;
-        for (auto j = min_offset; j < max_offset; j += offsetStep)
+        for (auto j = min_offset; j <= max_offset; j += offsetStep)
         {
             myoffset = j;
 
@@ -1290,24 +1290,18 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     auto newgr = oldGenerics.begin();
     auto firstgr = oldGenerics.begin();
     newGenerics.push_back(*firstgr); //0 the best of init group
-    /* cross first and second */
+    /* cross third and second */
     auto secondgr = oldGenerics.begin() + 1;
+    auto thirddgr = oldGenerics.begin() + 2;
     newgr->volume = secondgr->volume;
+    newgr->offset = thirddgr->offset;
     newGenerics.push_back(*newgr); //1 cross 1
-    newgr->volume = firstgr->volume;
+    newgr->volume = thirddgr->volume;
     newgr->offset = secondgr->offset;
     newGenerics.push_back(*newgr); //2 cross 2
     /* Variation 4 genes */
-    auto thirddgr = oldGenerics.begin() + 2;
-    auto myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
-    if ((myoffset % 2) != 0)
-    {
-        myoffset += 1;
-    }
-    thirddgr->offset = myoffset;
-    newGenerics.push_back(*thirddgr); //3 variation 1
     auto fourthdgr = oldGenerics.begin() + 3;
-    myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+    auto myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
     if ((myoffset % 2) != 0)
     {
         myoffset += 1;
@@ -1315,14 +1309,22 @@ void SinkPlayer::GenerateNewGene(SinkInfo* si, SinkPlayer* sp){
     fourthdgr->offset = myoffset;
     newGenerics.push_back(*fourthdgr); //4 variation 2
     auto fifthdgr = oldGenerics.begin() + 4;
-    auto myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
-    fifthdgr->volume = myvolume;
-    newGenerics.push_back(*fifthdgr); //5 variation 3
+    myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
+    if ((myoffset % 2) != 0)
+    {
+        myoffset += 1;
+    }
+    fifthdgr->offset = myoffset;
+    newGenerics.push_back(*fifthdgr); //3 variation 1
     auto sixthdgr = oldGenerics.begin() + 5;
-    myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+    auto myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
     sixthdgr->volume = myvolume;
-    newGenerics.push_back(*sixthdgr); //6 variation 4
-    /* import 3 new genes */
+    newGenerics.push_back(*sixthdgr); //5 variation 3
+    auto seventhdgr = oldGenerics.begin() + 6;
+    myvolume = min_volume + (rand() % (int)(max_volume - min_volume + 1));
+    seventhdgr->volume = myvolume;
+    newGenerics.push_back(*seventhdgr); //6 variation 4
+    /* import 2 new genes */
     for (int j = 0; j < 2; ++j)
     {
         myoffset = min_offset + (rand() % (int)(max_offset - min_offset + 1));
@@ -1418,47 +1420,6 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             ++initCount;
             gr = (sp->mGenerics).begin();
         }
-        
-        for (int i = 0; i < 5; ++i)
-        {
-            uint64_t time = GetCurrentTimeNanos();
-            MsgArg setTimeArgs[1];
-            setTimeArgs[0].Set("t", time);
-            Message setTimeReply(*sp->mMsgBus);
-            status = si->streamObj->MethodCall(CLOCK_INTERFACE, "SetTime", setTimeArgs, 1, setTimeReply);
-            uint64_t newTime = GetCurrentTimeNanos();
-            if (ER_OK == status) {
-                QCC_DbgTrace(("Port.SetTime(%" PRIu64 ") success", time));
-            } else {
-                QCC_LogError(status, ("Port.SetTime() failed"));
-                return false;
-            }
-
-            diffTime = (newTime - time) / 2;
-            if (diffTime < 10000000) { // 10ms
-                break;
-            }
-
-            SleepNanos(1000000000);
-        }
-        printf("The transfer time is %lld ms\n", diffTime/1000000);
-        
-        // sumtime = (rand()%(addtime_max - addtime_min + 1)) + addtime_min;
-        // float sumtime_f = sumtime/1000000;
-        // printf("The random adj time is %f ms\n", sumtime_f);
-
-        diffTime += sumtime;
-        //adjust time
-        MsgArg adjustTimeArgs[1];
-        adjustTimeArgs[0].Set("x", diffTime);
-        Message adjustTimeReply(*sp->mMsgBus);
-        status = si->streamObj->MethodCall(CLOCK_INTERFACE, "AdjustTime", adjustTimeArgs, 1, adjustTimeReply);
-        if (ER_OK == status) {
-            QCC_DbgHLPrintf(("Port.AdjustTime(%" PRId64 ") with %s succeeded", diffTime, si->serviceName));
-        } else {
-            QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
-            return false;
-        }
 
 
         // char setvol[300]="setvol.sh ";
@@ -1470,6 +1431,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     myfile.close();
 
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
+        /*
         for (int i = 0; i < 5; ++i)
         {
             uint64_t time = GetCurrentTimeNanos();
@@ -1510,8 +1472,9 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             QCC_LogError(status, ("Port.AdjustTime() with %s failed", si->serviceName));
             return false;
         }
+        */
 
-        SleepNanos(5000000000); //6s
+        SleepNanos(6000000000); //6s
 
     }
     
