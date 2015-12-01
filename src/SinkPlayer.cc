@@ -732,12 +732,12 @@ bool SinkPlayer::OpenSink(const char* name) {
         Thread* t = new Thread("EmitAudio", &EmitAudioThread);
         mEmitThreads[si->serviceName] = t;
         t->Start(eai);
-        // if (fsiFlag == 1)
-        // {
-        //     Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
-        //     mSyntThreads[si->serviceName] = syn_t;
-        //     syn_t->Start(eai);
-        // }
+        if (fsiFlag == 1)
+        {
+            Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
+            mSyntThreads[si->serviceName] = syn_t;
+            syn_t->Start(eai);
+        }
         mEmitThreadsMutex->Unlock();
     }
 
@@ -1350,8 +1350,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     QStatus status = ER_OK;
 
     ofstream myfile; //write data to myfile
-    // myfile.open ("exhaustion.txt"); //1.exhaustion
-    myfile.open ("generic.txt"); //2.generic
+    myfile.open ("exhaustion.txt"); //1.exhaustion
+    // myfile.open ("generic.txt"); //2.generic
     size_t lastsize = 0;
     size_t lastestsize = 0;
 
@@ -1365,26 +1365,26 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     int64_t sumtime = 0;
     int64_t diffTime = 0;
 
-    // sp->StartExhaustion(si, sp); //1.exhaustion
-    sp->StartGeneric(si,sp); //2.generic
-    // auto tempgeneric = sp->mGenerics;
+    sp->StartExhaustion(si, sp); //1.exhaustion
+    // sp->StartGeneric(si,sp); //2.generic
     auto gr = (sp->mGenerics).begin();
     int initCount = 1;
 
+    bool exhaustion_flag = true;
+    bool generic_flag = false;
+
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
-        /* init the generic group */
-        if (initCount % 10 != 0)
+        if (exhaustion_flag == true)
         {
             SleepNanos(1000000000); //1s
             sp->ChangeVolume(gr->volume); // change volume
-
             /* change offset */
             sp->mSinksMutex->Lock();
             si->offsettime = gr->offset;
             sp->mSinksMutex->Unlock();
             printf("\nThe offset has been adjusted to%d\n", gr->offset);
-            
-            SleepNanos(10000000000); //10s
+
+            SleepNanos(9000000000); //9s
             /* get noise */
             sp->GetNoise(curl, lastsize,lastestsize, micreadBuffer,diffBuffer);
             // gr->result = std::stoi(diffBuffer);
@@ -1395,31 +1395,61 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
             myfile << gr->volume << "\t" << gr->offset << "\t" << gr->result << "\n";
             
             gr++;
-            ++initCount;
         }
-        if (initCount % 10 == 0)
+
+
+        /* init the generic group */
+        if (generic_flag == true)
         {
-            /* sort the init result and generate now group */
-            std::sort((sp->mGenerics).begin(), (sp->mGenerics).end(), CompareGene());
-            auto firstgr = (sp->mGenerics).begin();
-            printf("The best result of init group is %d\n", firstgr->result);
-            if (firstgr->result < 10 || (initCount/10) > 5)
+            if (initCount % 10 != 0)
             {
-                /* if the object has been reached, set the best value and stop generic */
-                sp->ChangeVolume(firstgr->volume); // change volume
-                printf("The best volume is %d\n", firstgr->volume);
+                SleepNanos(1000000000); //1s
+                sp->ChangeVolume(gr->volume); // change volume
+
                 /* change offset */
                 sp->mSinksMutex->Lock();
                 si->offsettime = gr->offset;
                 sp->mSinksMutex->Unlock();
-                printf("\nThe best offset is %d\n", firstgr->offset);
+                printf("\nThe offset has been adjusted to%d\n", gr->offset);
+                
+                SleepNanos(10000000000); //10s
+                /* get noise */
+                sp->GetNoise(curl, lastsize,lastestsize, micreadBuffer,diffBuffer);
+                // gr->result = std::stoi(diffBuffer);
+                gr->result = atoi(diffBuffer.c_str());
+                // printf("The value of micreadBuffer is %s",micreadBuffer.c_str());
 
-                break;
+                /* write data to file*/
+                myfile << gr->volume << "\t" << gr->offset << "\t" << gr->result << "\n";
+                
+                gr++;
+                ++initCount;
             }
-            sp->GenerateNewGene(si,sp);
-            ++initCount;
-            gr = (sp->mGenerics).begin();
+            if (initCount % 10 == 0)
+            {
+                /* sort the init result and generate now group */
+                std::sort((sp->mGenerics).begin(), (sp->mGenerics).end(), CompareGene());
+                auto firstgr = (sp->mGenerics).begin();
+                printf("The best result of init group is %d\n", firstgr->result);
+                if (firstgr->result < 10 || (initCount/10) > 5)
+                {
+                    /* if the object has been reached, set the best value and stop generic */
+                    sp->ChangeVolume(firstgr->volume); // change volume
+                    printf("The best volume is %d\n", firstgr->volume);
+                    /* change offset */
+                    sp->mSinksMutex->Lock();
+                    si->offsettime = gr->offset;
+                    sp->mSinksMutex->Unlock();
+                    printf("\nThe best offset is %d\n", firstgr->offset);
+
+                    break;
+                }
+                sp->GenerateNewGene(si,sp);
+                ++initCount;
+                gr = (sp->mGenerics).begin();
+            }
         }
+        
 
 
         // char setvol[300]="setvol.sh ";
