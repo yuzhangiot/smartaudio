@@ -2,6 +2,7 @@ import httplib, urllib, json, pprint
 from wand.image import Image
 import numpy as np
 from pylab import *
+import numpy
 # from pprint import pprint
 
 def readdata(num):
@@ -134,6 +135,178 @@ def drawPicEight():
 
 	show()
 
+def drawPicNine():
+	figure(figsize=(8,6), dpi=80)
+
+	subplot(1,1,1)
+
+	# with open('data/figure9') as f:
+	# 	databuffer = f.read().splitlines()
+	newbuffer = []
+	with open('data/exhaustion.txt') as f:
+		databuffer = f.read().splitlines()
+	for myline in databuffer:
+		newline = myline.split('\t')
+		newbuffer.append(newline[2])
+
+	
+	# for x in databuffer[70:-50]:
+	# 	if (int(x,0) > 105):
+	# 		x = "60"
+	# 	newbuffer.append(x)
+
+	mylength = len(newbuffer)
+	X = np.linspace(1, mylength, mylength,endpoint=True)
+	# C,S = np.cos(X), np.sin(X)
+	
+
+	plot(X, newbuffer, color="blue", linewidth=1.5, linestyle="-", label="Exhaustion algorithm")
+	# plot(X, pi, color="green", linewidth=1.5, linestyle=":", label="RaspberryPi")
+	# plot(X, cool4, color="red", linewidth=1.5, linestyle="--", label="Linux Server")
+
+	# plot(X, S, color="green", linewidth=1.0, linestyle="-")
+
+	xlim(0,mylength)
+
+	xticks(np.linspace(0,mylength,111,endpoint=True))
+
+	ylim(0,100)
+
+	yticks(np.linspace(0.000,100,11,endpoint=True))
+	legend(loc='upper left')
+
+	show()
+
+def drawPicTen():
+	figure(figsize=(8,6), dpi=80)
+
+	subplot(1,1,1)
+
+	with open('data/figure10_3') as f:
+		databuffer = f.read().splitlines()
+	newbuffer = []
+	# with open('data/generic01.txt') as f:
+	# 	databuffer = f.read().splitlines()
+	# for myline in databuffer:
+	# 	newline = myline.split('\t')
+	# 	newbuffer.append(newline[2])
+
+	for x in databuffer[5:-5]:
+		if (int(x,0) > 180):
+			x = "145"
+		newbuffer.append(x)
+
+	mylength = len(newbuffer)
+	X = np.linspace(1, mylength, mylength,endpoint=True)
+	# C,S = np.cos(X), np.sin(X)
+	
+
+	plot(X, newbuffer, color="blue", linewidth=1.5, linestyle="-", label="Generic algorithm")
+	# plot(X, pi, color="green", linewidth=1.5, linestyle=":", label="RaspberryPi")
+	# plot(X, cool4, color="red", linewidth=1.5, linestyle="--", label="Linux Server")
+
+	# plot(X, S, color="green", linewidth=1.0, linestyle="-")
+
+	xlim(0,mylength)
+
+	xticks(np.linspace(0,mylength,6,endpoint=True))
+
+	ylim(0,150)
+
+	yticks(np.linspace(0.000,150,16,endpoint=True))
+	legend(loc='upper left')
+
+	show()
+
+def drawPicFour():
+	figure(figsize=(8,6), dpi=80)
+
+	subplot(1,1,1)
+
+	with open('data/figure4') as f:
+		databuffer = f.read().splitlines()
+	newbuffer = []
+	inversebuffer = []
+	addbuffer = []
+	# with open('data/generic01.txt') as f:
+	# 	databuffer = f.read().splitlines()
+	# for myline in databuffer:
+	# 	newline = myline.split('\t')
+	# 	newbuffer.append(newline[2])
+
+	i = 0
+	for x in databuffer:
+		newbuffer.append(float(x))
+		# inversebuffer.append(-float(x))
+
+	for k in range(21):
+		inversebuffer.append(0.0)
+	for l in databuffer[:-21]:
+		inversebuffer.append(-float(l))
+
+	for j in range(len(databuffer)):
+		mresult = newbuffer[j] + inversebuffer[j]
+		addbuffer.append(mresult)
+
+	mylength = len(newbuffer)
+	X = np.linspace(1, mylength, mylength,endpoint=True)	
+
+	plot(X, newbuffer, color="blue", linewidth=1.5, linestyle="-", label="original wave")
+	plot(X, inversebuffer, color="green", linewidth=1.5, linestyle=":", label="Inverse wave")
+	# plot(X, cool4, color="red", linewidth=1.5, linestyle="--", label="Linux Server")
+
+	# plot(X, S, color="green", linewidth=1.0, linestyle="-")
+
+	xlim(0,mylength)
+
+	xticks(np.linspace(0,mylength,5,endpoint=True))
+
+	ylim(-1,1)
+
+	yticks(np.linspace(-1,1,11,endpoint=True))
+	legend(loc='upper left')
+
+	show()
+
+def drawPicSix():
+	figure(figsize=(8,6), dpi=80)
+
+	subplot(1,1,1)
+
+	# with open('data/figure10_3') as f:
+	# 	databuffer = f.read().splitlines()
+	# newbuffer = []
+
+	t = np.arange(1,256,1)  
+	y = 0.99*abs(np.sin(2*np.pi*t/256))
+	# with open('data/generic01.txt') as f:
+	# 	databuffer = f.read().splitlines()
+	# for myline in databuffer:
+	# 	newline = myline.split('\t')
+	# 	newbuffer.append(newline[2])
+
+	mylength = len(y)
+	X = np.linspace(1, mylength, mylength,endpoint=True)
+	# C,S = np.cos(X), np.sin(X)
+	
+
+	plot(X, y, color="blue", linewidth=1.5, linestyle="-", label="Generic algorithm")
+	# plot(X, pi, color="green", linewidth=1.5, linestyle=":", label="RaspberryPi")
+	# plot(X, cool4, color="red", linewidth=1.5, linestyle="--", label="Linux Server")
+
+	# plot(X, S, color="green", linewidth=1.0, linestyle="-")
+
+	xlim(0,mylength)
+
+	xticks(np.linspace(0,mylength,5,endpoint=True))
+
+	ylim(0,1)
+
+	yticks(np.linspace(0.000,1,6,endpoint=True))
+	# legend(loc='upper left')
+
+	show()
+
 # writedatatofile("figure7")
 # drawPicSeven()
 # mylist = seperatedata()
@@ -143,8 +316,12 @@ def drawPicEight():
 # writedatatofile("figure8_4", mylist[3])
 # writedatatofile("figure8_5", mylist[4])
 # drawPicEight()
-databuffer = readdata(450)
-writedatatofile("figure9",databuffer)
-
+# databuffer = readdata(130)
+# print databuffer
+# writedatatofile("figure10_4",databuffer)
+# drawPicNine()
+# drawPicTen()
+# drawPicFour()
+drawPicSix()
 
 

@@ -228,7 +228,7 @@ class SinkSessionListener : public SessionListener {
 SinkPlayer::SinkPlayer(BusAttachment* msgBus)
     : MessageReceiver(), mSinkListenersMutex(new qcc::Mutex()), mDataSource(NULL), mDataSourceAnti(NULL),
     mSinksMutex(new qcc::Mutex()), mAddThreadsMutex(new qcc::Mutex()), mRemoveThreadsMutex(new qcc::Mutex()),
-    mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL), fsiFlag(true) {
+    mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL), fsiFlag(false) {
     mMsgBus = msgBus;
     mSessionListener = new SinkSessionListener(this);
     mPreferredFormat = strdup(MIMETYPE_AUDIO_RAW);
