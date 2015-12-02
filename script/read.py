@@ -143,7 +143,8 @@ def drawPicEight():
 # writedatatofile("figure8_4", mylist[3])
 # writedatatofile("figure8_5", mylist[4])
 # drawPicEight()
-
+databuffer = readdata(450)
+writedatatofile("figure9",databuffer)
 
 
 
