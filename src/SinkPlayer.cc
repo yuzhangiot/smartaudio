@@ -1351,8 +1351,8 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     QStatus status = ER_OK;
 
     ofstream myfile; //write data to myfile
-    myfile.open ("exhaustion.txt"); //1.exhaustion
-    // myfile.open ("generic.txt"); //2.generic
+    // myfile.open ("exhaustion.txt"); //1.exhaustion
+    myfile.open ("generic.txt"); //2.generic
     size_t lastsize = 0;
     size_t lastestsize = 0;
 
@@ -1366,13 +1366,13 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
     int64_t sumtime = 0;
     int64_t diffTime = 0;
 
-    sp->StartExhaustion(si, sp); //1.exhaustion
-    // sp->StartGeneric(si,sp); //2.generic
+    // sp->StartExhaustion(si, sp); //1.exhaustion
+    sp->StartGeneric(si,sp); //2.generic
     auto gr = (sp->mGenerics).begin();
     int initCount = 1;
 
-    bool exhaustion_flag = true;
-    bool generic_flag = false;
+    bool exhaustion_flag = false;
+    bool generic_flag = true;
 
     while(!selfThread->IsStopping() && si->inputDataBytesRemaining > 0){
         if (exhaustion_flag == true)
