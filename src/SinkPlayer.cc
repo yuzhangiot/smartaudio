@@ -228,7 +228,7 @@ class SinkSessionListener : public SessionListener {
 SinkPlayer::SinkPlayer(BusAttachment* msgBus)
     : MessageReceiver(), mSinkListenersMutex(new qcc::Mutex()), mDataSource(NULL), mDataSourceAnti(NULL),
     mSinksMutex(new qcc::Mutex()), mAddThreadsMutex(new qcc::Mutex()), mRemoveThreadsMutex(new qcc::Mutex()),
-    mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL), fsiFlag(false) {
+    mEmitThreadsMutex(new qcc::Mutex()), mSinkListenerThread(NULL), fsiFlag(true) {
     mMsgBus = msgBus;
     mSessionListener = new SinkSessionListener(this);
     mPreferredFormat = strdup(MIMETYPE_AUDIO_RAW);
@@ -1432,7 +1432,7 @@ ThreadReturn SinkPlayer::SyncTimeThread(void* arg){
                 std::sort((sp->mGenerics).begin(), (sp->mGenerics).end(), CompareGene());
                 auto firstgr = (sp->mGenerics).begin();
                 printf("The best result of init group is %d\n", firstgr->result);
-                if (firstgr->result < 4 || (initCount/10) > 4)
+                if (firstgr->result < 4 || (initCount/10) > 2)
                 {
                     /* if the object has been reached, set the best value and stop generic */
                     sp->ChangeVolume(firstgr->volume); // change volume
