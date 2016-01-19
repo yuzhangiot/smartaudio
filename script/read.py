@@ -307,6 +307,58 @@ def drawPicSix():
 
 	show()
 
+def drawPicEleven():
+	figure(figsize=(8,6), dpi=80)
+
+	subplot(1,1,1)
+
+	X = np.linspace(1, 50, 50,endpoint=True)
+	# C,S = np.cos(X), np.sin(X)
+	with open('data/figure7') as f:
+		num01 = f.read().splitlines()
+	with open('data/figure11') as f:
+		num02 = f.read().splitlines()
+	# with open('data/figure8_5') as f:
+	# 	num05 = f.read().splitlines()
+
+
+	plot(X, num01, color="blue", linewidth=1.5, linestyle="-", label="original noise")
+	plot(X, num02, color="green", linewidth=1.5, linestyle="-", label="noise cancellation")
+	# plot(X, num05[3:53], color="black", linewidth=1.5, linestyle="-", label="fifth test")
+	# plot(X, pi, color="green", linewidth=1.5, linestyle=":", label="RaspberryPi")
+	# plot(X, cool4, color="red", linewidth=1.5, linestyle="--", label="Linux Server")
+
+	# plot(X, S, color="green", linewidth=1.0, linestyle="-")
+
+	xlim(0,50.0)
+
+	xticks(np.linspace(0,50,6,endpoint=True))
+
+	ylim(0,150)
+
+	yticks(np.linspace(0.000,150,16,endpoint=True))
+	legend(loc='upper left')
+
+	show()
+
+def getMean():
+	with open('data/figure7') as f:
+		num01_str = f.read().splitlines()
+	with open('data/figure11') as f:
+		num02_str = f.read().splitlines()
+	num01 = []
+	num02 = []
+	for x  in num01_str:
+		num01.append(float(x))
+	for y in num02_str:
+		num02.append(float(y))
+
+	num01_mean = np.mean(num01)
+	num02_mean = np.mean(num02)
+
+	effect_percent = (num01_mean - num02_mean) / num01_mean
+	return effect_percent
+
 # writedatatofile("figure7")
 # drawPicSeven()
 # mylist = seperatedata()
@@ -316,12 +368,14 @@ def drawPicSix():
 # writedatatofile("figure8_4", mylist[3])
 # writedatatofile("figure8_5", mylist[4])
 # drawPicEight()
-# databuffer = readdata(130)
+# databuffer = readdata(50)
 # print databuffer
-# writedatatofile("figure10_4",databuffer)
+# writedatatofile("figure11",databuffer)
 # drawPicNine()
 # drawPicTen()
 # drawPicFour()
-drawPicSix()
+# drawPicSix()
+# drawPicEleven()
+print getMean()
 
 

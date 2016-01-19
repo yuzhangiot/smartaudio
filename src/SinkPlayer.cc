@@ -732,13 +732,13 @@ bool SinkPlayer::OpenSink(const char* name) {
         Thread* t = new Thread("EmitAudio", &EmitAudioThread);
         mEmitThreads[si->serviceName] = t;
         t->Start(eai);
-        if (fsiFlag == true)
-        {
-            fsiFlag = false;
-            Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
-            mSyntThreads[si->serviceName] = syn_t;
-            syn_t->Start(eai);
-        }
+        // if (fsiFlag == true)
+        // {
+        //     fsiFlag = false;
+        //     Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
+        //     mSyntThreads[si->serviceName] = syn_t;
+        //     syn_t->Start(eai);
+        // }
         mEmitThreadsMutex->Unlock();
     }
 
@@ -1860,13 +1860,13 @@ bool SinkPlayer::Play() {
                 }
                 si->timestamp = timestamp;
                 t->Start(eai);
-                if (fsiFlag == true)
-                {
-                    fsiFlag = false;
-                    Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
-                    mSyntThreads[si->serviceName] = syn_t;
-                    syn_t->Start(eai);
-                }
+                // if (fsiFlag == true)
+                // {
+                //     fsiFlag = false;
+                //     Thread* syn_t = new Thread("SynTime", &SyncTimeThread);
+                //     mSyntThreads[si->serviceName] = syn_t;
+                //     syn_t->Start(eai);
+                // }
                 // syn_t->Start(eai);
             }
             mEmitThreadsMutex->Unlock();
